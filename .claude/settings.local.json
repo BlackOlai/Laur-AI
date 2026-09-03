@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(& \".\\\\.venv_tts\\\\Scripts\\\\python.exe\" \"scripts\\\\generate_locution.py\" --text \"A clonagem de voz agora está funcionando perfeitamente, senhor Olair!\" --speaker \"vozes_base\\\\fe_revelada_female.wav\" --output \"test_success.wav\")"
+    ]
+  }
+}

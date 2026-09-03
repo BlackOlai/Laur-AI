@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laura HUD Evolution</title>
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cyan: rgba(83, 171, 243, 0.893);
+            --cyan-glow: rgba(0, 210, 255, 0.4);
+            --bg-dark: rgba(2, 10, 20, 0.98);
+            --panel-bg: rgba(0, 20, 40, 0.4);
+            --border-color: rgb(0, 208, 255);
+            --font-main: 'Inter', sans-serif;
+            --font-hud: 'Orbitron', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: transparent;
+            font-family: var(--font-main);
+            color: white;
+            user-select: none;
+        }
+
+        .main-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: transparent;
+        }
+
+        .hud-container {
+            width: 350px;
+            height: 650px;
+            flex-shrink: 0;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            position: relative;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: inset 0 0 50px rgba(0, 210, 255, 0.1);
+            z-index: 10;
+        }
+
+        .hud-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                linear-gradient(rgba(0, 210, 255, 0.05) 1px, transparent 1px) 0 0 / 20px 20px,
+                linear-gradient(90deg, rgba(0, 210, 255, 0.05) 1px, transparent 1px) 0 0 / 20px 20px;
+            pointer-events: none;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+        }
+
+        .logo-text {
+            font-family: var(--font-hud);
+            font-size: 24px;
+            letter-spacing: 4px;
+            color: var(--cyan);
+            text-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .clock-area {
+            text-align: right;
+            font-family: var(--font-hud);
+        }
+
+        #digital-clock {
+            font-size: 16px;
+        }
+
+        #digital-date {
+            font-size: 9px;
+            color: var(--cyan);
+            opacity: 0.7;
+        }
+
+        .hud-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .hud-panel::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid var(--cyan);
+            border-left: 2px solid var(--cyan);
+        }
+
+        .hud-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            right: -1px;
+            width: 10px;
+            height: 10px;
+            border-bottom: 2px solid var(--cyan);
+            border-right: 2px solid var(--cyan);
+        }
+
+        .panel-title {
+            font-family: var(--font-hud);
+            font-size: 10px;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .panel-title::after {
+            content: '';
+            flex-grow: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--cyan), transparent);
+            margin-left: 10px;
+        }
+
+        /* CORE */
+        .core-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 160px;
+            margin: 5px 0;
+        }
+
+        .core-center {
+            width: 130px;
+            height: 130px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: var(--cyan);
+            animation: rotate 10s linear infinite;
+        }
+
+        .ring-1 {
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+        }
+
+        .ring-2 {
+            width: 85%;
+            height: 85%;
+            border-top-color: #fff;
+            border-bottom-color: var(--cyan);
+            animation-duration: 15s;
+            animation-direction: reverse;
+        }
+
+        .ring-3 {
+            width: 70%;
+            height: 70%;
+            border-left-color: var(--cyan);
+            animation-duration: 7s;
+            border-style: dashed;
+        }
+
+        .core-inner {
+            width: 40px;
+            height: 40px;
+            background: var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 30px var(--cyan);
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: var(--font-hud);
+            font-size: 9px;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .anomaly-tag {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff0000;
+            color: white;
+            font-family: var(--font-hud);
+            font-size: 9px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            box-shadow: 0 0 15px #ff0000;
+            opacity: 0;
+            transition: opacity 0.5s;
+            animation: blink-red 1s infinite;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        @keyframes blink-red {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 15px #ff0000;
+            }
+
+            50% {
+                opacity: 0.5;
+                box-shadow: 0 0 5px #ff0000;
+            }
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .voice-waves {
+            position: absolute;
+            bottom: -15px;
+            display: flex;
+            gap: 4px;
+            height: 20px;
+            align-items: center;
+        }
+
+        .wave-bar {
+            width: 3px;
+            height: 4px;
+            background: var(--cyan);
+            border-radius: 2px;
+            animation: wave 1s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+
+            0%,
+            100% {
+                height: 4px;
+            }
+
+            50% {
+                height: 20px;
+            }
+        }
+
+        /* Stats Bars */
+        .stats-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stat-value {
+            font-family: var(--font-hud);
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .stat-bar-bg {
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            background: var(--cyan);
+            width: 0%;
+            transition: width 1s;
+            box-shadow: 0 0 10px var(--cyan);
+        }
+
+        /* Layout Grid for smaller panels */
+        .small-panels-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Weather */
+        .weather-content {
+            text-align: center;
+        }
+
+        .temp-main {
+            font-family: var(--font-hud);
+            font-size: 24px;
+            margin: 2px 0;
+        }
+
+        .weather-details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 5px;
+            font-size: 9px;
+            opacity: 0.8;
+        }
+
+        /* --- TRANSPARENCY BASE --- */
+        html,
+        body {
+            background-color: transparent !important;
+            background: transparent !important;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- MINIMIZED MODE (MODO BOLINHA) --- */
+
+        /* Quando minimizado: centraliza tudo na janela 200x200 */
+        body.mode-minimized {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 200px;
+            height: 200px;
+            background: transparent !important;
+        }
+
+        body.mode-minimized .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 200px;
+            height: 200px;
+            background: transparent !important;
+        }
+
+        .hud-container.minimized {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            padding: 0;
+            overflow: hidden;
+            border: 2px solid var(--cyan);
+            box-shadow: 0 0 30px var(--cyan-glow), inset 0 0 20px var(--cyan-glow);
+            background: rgba(2, 10, 20, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            margin: 10px auto;
+            /* 10px de margem = cantos pretos = transparentes via Chroma Key */
+        }
+
+        .hud-container.minimized header,
+        .hud-container.minimized .hud-panel,
+        .hud-container.minimized .small-panels-grid,
+        .hud-container.minimized .panel-title,
+        .hud-container.minimized #status-text {
+            display: none !important;
+        }
+
+        .hud-container.minimized .core-area {
+            height: 80px;
+            margin: 0;
+        }
+
+        .hud-container.minimized .core-center {
+            width: 70px;
+            height: 70px;
+        }
+
+        .hud-container.minimized .core-inner {
+            width: 25px;
+            height: 25px;
+            font-size: 7px;
+        }
+
+        /* Scanline global optimization */
+        .hud-container::before {
+            border-radius: inherit;
+        }
+
+        /* --- CHAT PANEL --- */
+        .chat-panel {
+            width: 330px;
+            height: 550px;
+            background: rgba(1, 8, 16, 0.98);
+            border: 1px solid var(--cyan);
+            border-left: none;
+            border-radius: 0 15px 15px 0;
+            position: absolute;
+            left: 350px;
+            top: 50px;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            transform: translateX(-50px);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.4s ease-out;
+            z-index: 20;
+            box-shadow: 20px 0 30px rgba(0, 210, 255, 0.05);
+        }
+
+        .chat-panel.open {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+            animation: border-pulse 2s infinite;
+        }
+
+        .chat-panel.opening::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #fff;
+            box-shadow: 0 0 20px 5px var(--cyan);
+            animation: scanline-enter 1s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes scanline-enter {
+            0% {
+                top: 0;
+                opacity: 1;
+            }
+
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+
+        @keyframes border-pulse {
+
+            0%,
+            100% {
+                box-shadow: -2px 0 10px rgba(0, 210, 255, 0.2);
+            }
+
+            50% {
+                box-shadow: -2px 0 25px rgba(0, 210, 255, 0.6);
+            }
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .chat-title {
+            font-family: var(--font-hud);
+            font-size: 14px;
+            color: var(--cyan);
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            font-family: var(--font-hud);
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: var(--cyan-glow);
+        }
+
+        .chat-history {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 5px;
+        }
+
+        /* Scrollbar styles */
+        .chat-history::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-history::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-history::-webkit-scrollbar-thumb {
+            background: var(--cyan);
+            border-radius: 2px;
+        }
+
+        .msg {
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.4;
+            max-width: 85%;
+        }
+
+        .msg-ai {
+            background: rgba(0, 210, 255, 0.1);
+            border-left: 3px solid var(--cyan);
+            align-self: flex-start;
+        }
+
+        .msg-user {
+            background: rgba(255, 255, 255, 0.05);
+            align-self: flex-end;
+            border-right: 3px solid #fff;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        #chat-input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            font-size: 12px;
+            font-family: var(--font-main);
+        }
+
+        .hud-btn {
+            background: transparent;
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            font-family: var(--font-hud);
+            font-size: 12px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .hud-btn:hover {
+            background: var(--cyan-glow);
+        }
+
+        /* Drag handle: apenas o cabeçalho do HUD é arastável */
+        .drag-handle {
+            cursor: move;
+            user-select: none;
+        }
+
+        .min-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: transparent;
+            border: none;
+            color: var(--cyan);
+            font-size: 10px;
+            cursor: pointer;
+            z-index: 100;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <!-- HUD VERTICAL (350x650) -->
+        <div class="hud-container" id="hud-container" onclick="handleHudClick(event)">
+            <button class="min-btn" onclick="setMinimized(true)" title="Minimizar">[_]</button>
+            <header class="drag-handle">
+                <div class="logo-area">
+                    <div class="logo-text">LAURA</div>
+                </div>
+                <div class="clock-area">
+                    <div id="digital-clock">00:00:00</div>
+                    <div id="digital-date">...</div>
+                </div>
+            </header>
+
+            <main class="core-area">
+                <div class="core-center">
+                    <div class="ring ring-1"></div>
+                    <div class="ring ring-2"></div>
+                    <div class="ring ring-3"></div>
+                    <div class="core-inner">CORE</div>
+                </div>
+                <div id="anomaly-tag" class="anomaly-tag">ANOMALY DETECTED</div>
+                <div id="status-text"
+                    style="position: absolute; bottom: 20px; font-family: var(--font-hud); font-size: 10px; color: var(--cyan); letter-spacing: 2px;">
+                    IDLE</div>
+                <div class="voice-waves" id="voice-waves" style="opacity:0">
+                    <div class="wave-bar" style="animation-delay: 0.0s"></div>
+                    <div class="wave-bar" style="animation-delay: 0.2s"></div>
+                    <div class="wave-bar" style="animation-delay: 0.4s"></div>
+                    <div class="wave-bar" style="animation-delay: 0.2s"></div>
+                    <div class="wave-bar" style="animation-delay: 0.0s"></div>
+                </div>
+            </main>
+
+            <aside class="hud-panel">
+                <div class="panel-title">System Metrics</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value"><span>CPU</span> <span id="cpu-val">0%</span></div>
+                        <div class="stat-bar-bg">
+                            <div id="cpu-bar" class="stat-bar-fill"></div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value"><span>RAM</span> <span id="ram-val">0%</span></div>
+                        <div class="stat-bar-bg">
+                            <div id="ram-bar" class="stat-bar-fill"></div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value"><span>DISK</span> <span id="disk-val">0%</span></div>
+                        <div class="stat-bar-bg">
+                            <div id="disk-bar" class="stat-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="small-panels-grid">
+                <aside class="hud-panel">
+                    <div class="panel-title">Weather</div>
+                    <div class="weather-content">
+                        <div id="weather-city" style="font-size:10px; color:var(--cyan)">--</div>
+                        <div class="temp-main"><span id="weather-temp">--</span>°C</div>
+                        <div id="weather-condition" style="font-size:9px; opacity:0.7">--</div>
+                        <div class="weather-details">
+                            <div>H: <span id="weather-hum">--</span></div>
+                            <div>W: <span id="weather-wind">--</span></div>
+                        </div>
+                    </div>
+                </aside>
+
+                <aside class="hud-panel">
+                    <div class="panel-title">Market</div>
+                    <div style="font-size:12px; margin-top: 5px;">USD: <span id="val-usd"
+                            style="color:var(--cyan); float: right;">0.00</span></div>
+                    <div style="font-size:12px; margin-top: 5px;">EUR: <span id="val-eur"
+                            style="color:var(--cyan); float: right;">0.00</span></div>
+                </aside>
+            </div>
+
+            <div class="hud-panel" style="flex-grow: 1; display: flex; flex-direction: column;">
+                <div class="panel-title">Intelligence & Uplink</div>
+                <div id="news-title" style="font-size:10px; line-height:1.4; opacity: 0.8; flex-grow: 1;">Scanning
+                    global datastreams...</div>
+
+                <button class="hud-btn" style="width: 100%; margin-top: 5px;" onclick="toggleChat()">OPEN COMMS
+                    LINK</button>
+            </div>
+        </div>
+
+        <!-- PAINEL DE CHAT EXPANSÍVEL (350x650) -->
+        <div class="chat-panel" id="chat-panel">
+            <div class="chat-header">
+                <div class="chat-title">
+                    <span style="font-size: 10px;">🔴</span> SECURE COMMS LINK
+                </div>
+                <button class="close-btn" onclick="toggleChat()">CLOSE</button>
+            </div>
+
+            <div class="chat-history" id="chat-history">
+                <div class="msg msg-ai">Conexão segura estabelecida. Como posso ajudar, senhor?</div>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Digite seu comando..."
+                    onkeydown="if(event.key==='Enter') sendMsg()">
+                <button class="hud-btn" onclick="openFileDialog()" title="Anexar Arquivo">📎</button>
+                <button class="hud-btn" onclick="sendMsg()">SEND</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Drag da janela via JS no header
+        (function () {
+            const dragHandle = document.querySelector('.drag-handle');
+            if (!dragHandle) return;
+            let isDragging = false;
+            let startX, startY, windowStartX, windowStartY;
+
+            dragHandle.addEventListener('mousedown', function (e) {
+                if (e.target.tagName === 'BUTTON') return;
+                isDragging = true;
+                startX = e.screenX;
+                startY = e.screenY;
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function (e) {
+                if (!isDragging) return;
+                const dx = e.screenX - startX;
+                const dy = e.screenY - startY;
+                if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                    if (window.pywebview && window.pywebview.api) {
+                        window.pywebview.api.move_window(dx, dy);
+                    }
+                    startX = e.screenX;
+                    startY = e.screenY;
+                }
+            });
+
+            document.addEventListener('mouseup', function () {
+                isDragging = false;
+            });
+        })();
+
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('digital-clock').innerText = now.toLocaleTimeString('pt-BR');
+            document.getElementById('digital-date').innerText = now.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit' }).toUpperCase();
+        }
+        setInterval(updateClock, 1000); updateClock();
+
+        let currentMode = 'hud';
+        const chatPanel = document.getElementById('chat-panel');
+        const hudContainer = document.getElementById('hud-container');
+
+        // Force window to resize on startup
+        function initializeWindow() {
+            if (window.pywebview && window.pywebview.api) {
+                window.pywebview.api.get_status().then(data => {
+                    if (data && data.mode) applyMode(data.mode);
+                    else applyMode('hud');
+                });
+            } else {
+                setTimeout(initializeWindow, 100);
+            }
+        }
+        initializeWindow();
+
+        function handleHudClick(e) {
+            if (currentMode === 'minimized') {
+                setMinimized(false);
+            }
+        }
+
+        function setMinimized(val) {
+            const newMode = val ? 'minimized' : 'hud';
+            if (window.pywebview && window.pywebview.api) {
+                window.pywebview.api.change_mode(newMode);
+            } else {
+                applyMode(newMode);
+            }
+        }
+
+        // Toggle Chat Logic
+        function toggleChat() {
+            const newMode = currentMode === 'hud' ? 'chat' : 'hud';
+            if (window.pywebview && window.pywebview.api) {
+                window.pywebview.api.change_mode(newMode);
+            } else {
+                applyMode(newMode);
+            }
+        }
+
+        function applyMode(mode) {
+            if (mode === currentMode && document.body.classList.contains('mode-set')) return;
+            document.body.classList.add('mode-set');
+            currentMode = mode;
+
+            // Reset classes
+            hudContainer.classList.remove('minimized');
+            chatPanel.classList.remove('open');
+            document.body.classList.remove('mode-minimized');
+
+            if (mode === 'chat') {
+                if (window.pywebview && window.pywebview.api) {
+                    window.pywebview.api.resize_window(700, 650);
+                }
+                setTimeout(() => {
+                    chatPanel.classList.add('opening');
+                    chatPanel.classList.add('open');
+                    setTimeout(() => chatPanel.classList.remove('opening'), 1000);
+                }, 50);
+            } else if (mode === 'minimized') {
+                document.body.classList.add('mode-minimized');
+                hudContainer.classList.add('minimized');
+                if (window.pywebview && window.pywebview.api) {
+                    window.pywebview.api.resize_window(200, 200);
+                }
+            } else {
+                // HUD Mode
+                if (window.pywebview && window.pywebview.api) {
+                    window.pywebview.api.resize_window(350, 650);
+                }
+            }
+        }
+
+        // Backend Polling
+        function poll() {
+            if (window.pywebview && window.pywebview.api) {
+                window.pywebview.api.get_status().then(data => {
+                    if (!data) return;
+
+                    if (data.mode !== currentMode) {
+                        applyMode(data.mode);
+                    }
+
+                    if (data.system) {
+                        document.getElementById('cpu-val').innerText = data.system.cpu + '%';
+                        document.getElementById('cpu-bar').style.width = data.system.cpu + '%';
+                        document.getElementById('ram-val').innerText = data.system.ram + '%';
+                        document.getElementById('ram-bar').style.width = data.system.ram + '%';
+                        document.getElementById('disk-val').innerText = data.system.disk + '%';
+                        document.getElementById('disk-bar').style.width = data.system.disk + '%';
+                    }
+
+                    if (data.weather) {
+                        document.getElementById('weather-city').innerText = data.weather.city.split(',')[0];
+                        document.getElementById('weather-temp').innerText = Math.round(data.weather.temp);
+                        document.getElementById('weather-condition').innerText = data.weather.condition;
+                        document.getElementById('weather-hum').innerText = data.weather.humidity + '%';
+                        document.getElementById('weather-wind').innerText = data.weather.wind_kph + 'k';
+                    }
+
+                    if (data.news_ia) document.getElementById('news-title').innerText = data.news_ia.title;
+                    if (data.cotacao) {
+                        document.getElementById('val-usd').innerText = parseFloat(data.cotacao.dolar).toFixed(2);
+                        document.getElementById('val-eur').innerText = parseFloat(data.cotacao.euro).toFixed(2);
+                    }
+
+                    const st = document.getElementById('status-text');
+                    const wv = document.getElementById('voice-waves');
+                    const coreInner = document.querySelector('.core-inner');
+                    const anomalyTag = document.getElementById('anomaly-tag');
+
+                    if (data.unread_errors && data.unread_errors > 0) {
+                        anomalyTag.style.opacity = '1';
+                        anomalyTag.style.display = 'block';
+                    } else {
+                        anomalyTag.style.opacity = '0';
+                        setTimeout(() => { if (anomalyTag.style.opacity === '0') anomalyTag.style.display = 'none'; }, 500);
+                    }
+
+                    if (data.status === 'speaking') {
+                        st.innerText = 'SPEAKING';
+                        wv.style.opacity = '1';
+                        coreInner.style.boxShadow = '0 0 60px #fff';
+                        coreInner.style.background = '#fff';
+                    } else if (data.status === 'listening') {
+                        st.innerText = 'LISTENING';
+                        wv.style.opacity = '0.5';
+                        coreInner.style.boxShadow = '0 0 40px var(--cyan)';
+                        coreInner.style.background = 'var(--cyan)';
+                    } else {
+                        st.innerText = 'IDLE';
+                        wv.style.opacity = '0';
+                        coreInner.style.boxShadow = '0 0 30px var(--cyan)';
+                        coreInner.style.background = 'var(--cyan)';
+                    }
+
+                    if (data.text && data.status === 'speaking') addChatMessage('ai', data.text);
+                });
+            }
+        }
+        setInterval(poll, 1000);
+
+        function addChatMessage(type, text) {
+            const h = document.getElementById('chat-history');
+            if (h.lastChild && h.lastChild.innerText === text) return;
+            const d = document.createElement('div');
+            d.className = `msg msg-${type}`;
+            d.innerText = text;
+            h.appendChild(d);
+            h.scrollTop = h.scrollHeight;
+        }
+
+        function sendMsg() {
+            const i = document.getElementById('chat-input');
+            const t = i.value.trim();
+            if (!t) return;
+
+            addChatMessage('user', t);
+
+            if (window.pywebview && window.pywebview.api) {
+                window.pywebview.api.send_message(t);
+            } else {
+                // Mock response for testing
+                setTimeout(() => addChatMessage('ai', 'Processando comando...'), 500);
+            }
+
+            i.value = "";
+        }
+
+        function openFileDialog() {
+            if (window.pywebview && window.pywebview.api) {
+                window.pywebview.api.open_file_dialog().then(result => {
+                    if (result && result.success) {
+                        addChatMessage('user', `[Arquivo Anexado: ${result.filename}]`);
+                        addChatMessage('ai', `Recebi o arquivo ${result.filename}. Estou analisando...`);
+                    } else if (result && result.error) {
+                        console.error(result.error);
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>

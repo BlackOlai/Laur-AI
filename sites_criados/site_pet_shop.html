@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Shop Luxo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                        playfair: ['Playfair Display', 'serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@400;700;900&display=swap');
+        .glass { background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-[#050505] text-white selection:bg-orange-500 selection:text-white">
+    <nav id="home" class="fixed top-0 left-0 w-full z-50 glass border-b border-white/10 py-4 transition-all duration-300">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <h1 class="text-3xl font-playfair font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-600">PET SHOP LUXO</h1>
+            <ul class="hidden md:flex items-center space-x-10">
+                <li><a href="#home" class="text-sm uppercase tracking-widest font-inter font-medium hover:text-orange-400 transition-all">Home</a></li>
+                <li><a href="#colecao" class="text-sm uppercase tracking-widest font-inter font-medium hover:text-orange-400 transition-all">Coleção</a></li>
+                <li><a href="#sobre" class="text-sm uppercase tracking-widest font-inter font-medium hover:text-orange-400 transition-all">Sobre</a></li>
+                <li><a href="#contato" class="text-sm uppercase tracking-widest font-inter font-medium hover:text-orange-400 transition-all">Contato</a></li>
+            </ul>
+        </div>
+    </nav>
+    <section id="hero" class="relative h-screen w-full flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 z-0 scale-105 animate-[pulse_10s_infinite]" style="background-image: url('https://image.pollinations.ai/prompt/ultra%20luxury%20cinematic%20pet%20shop%20photo,%20dramatic%20lighting,%208k?width=1920&height=1080&nologo=true'); background-size: cover; background-position: center;"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent z-10"></div>
+        
+        <div class="relative z-20 text-center px-6 max-w-4xl">
+            <h2 class="text-6xl md:text-8xl font-playfair font-black mb-6 leading-tight">Onde o Luxo <br> Encontra a <span class="text-orange-500 italic">Lealdade</span></h2>
+            <p class="text-xl font-inter text-gray-300 mb-10 max-w-2xl mx-auto">Experiências exclusivas e curadoria de elite para o bem-estar do seu companheiro mais fiel.</p>
+            <div class="flex flex-col md:flex-row gap-4 justify-center">
+                <a href="#colecao" class="bg-orange-500 hover:bg-orange-600 text-white font-inter font-bold px-10 py-5 rounded-full hover:scale-105 transition-all duration-300 shadow-2xl shadow-orange-500/20">Explorar Boutique</a>
+                <a href="#sobre" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-inter font-bold px-10 py-5 rounded-full hover:scale-105 transition-all duration-300 border border-white/10">Nossa História</a>
+            </div>
+        </div>
+    </section>
+    <section id="colecao" class="py-32 relative overflow-hidden">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-20">
+                <div class="max-w-xl">
+                    <span class="text-orange-500 uppercase tracking-widest text-sm font-bold">Curadoria Exclusiva</span>
+                    <h3 class="text-5xl font-playfair font-bold mt-4">Nossa Coleção Signature</h3>
+                </div>
+                <p class="text-gray-400 font-inter max-w-xs mt-6 md:mt-0 italic border-l border-orange-500 pl-4">Produtos selecionados para os pets que merecem o extraordinário.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <!-- Card 1 -->
+                <div class="group relative bg-[#111] border border-white/5 p-4 rounded-[2rem] hover:border-orange-500/30 transition-all duration-500">
+                    <div class="relative overflow-hidden rounded-[1.5rem] mb-8">
+                        <img src="https://image.pollinations.ai/prompt/premium%20pet%20shop%20product%20shot,%20studio%20lighting,%20professional?width=800&height=800&nologo=true" alt="Produto 1" class="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all"></div>
+                    </div>
+                    <h4 class="text-2xl font-playfair font-bold mb-2">Ração Premium</h4>
+                    <p class="text-gray-400 font-inter text-sm mb-6">Nutrição de alta performance com ingredientes rigorosamente selecionados.</p>
+                    <div class="flex justify-between items-center pt-6 border-t border-white/5">
+                        <span class="text-2xl font-inter font-light">R$ 50,00</span>
+                        <button class="bg-white text-black hover:bg-orange-500 hover:text-white font-inter font-bold px-6 py-3 rounded-full transition-all duration-300">Comprar</button>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="group relative bg-[#111] border border-white/5 p-4 rounded-[2rem] hover:border-orange-500/30 transition-all duration-500">
+                    <div class="relative overflow-hidden rounded-[1.5rem] mb-8">
+                        <img src="https://image.pollinations.ai/prompt/luxury%20pet%20shop%20detail%20macro%20shot,%20cinematic?width=800&height=800&nologo=true" alt="Produto 2" class="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all"></div>
+                    </div>
+                    <h4 class="text-2xl font-playfair font-bold mb-2">Coleira de Luxo</h4>
+                    <p class="text-gray-400 font-inter text-sm mb-6">Artesanato impecável em couro legítimo e detalhes em metal banhado.</p>
+                    <div class="flex justify-between items-center pt-6 border-t border-white/5">
+                        <span class="text-2xl font-inter font-light">R$ 100,00</span>
+                        <button class="bg-white text-black hover:bg-orange-500 hover:text-white font-inter font-bold px-6 py-3 rounded-full transition-all duration-300">Comprar</button>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="group relative bg-[#111] border border-white/5 p-4 rounded-[2rem] hover:border-orange-500/30 transition-all duration-500">
+                    <div class="relative overflow-hidden rounded-[1.5rem] mb-8">
+                        <img src="https://image.pollinations.ai/prompt/exclusive%20pet%20shop%20model%20wearing%20product,%20lifestyle%20luxury?width=800&height=800&nologo=true" alt="Produto 3" class="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all"></div>
+                    </div>
+                    <h4 class="text-2xl font-playfair font-bold mb-2">Roupa de Luxo</h4>
+                    <p class="text-gray-400 font-inter text-sm mb-6">Design de alta costura para pets que expressam sofisticação em cada passo.</p>
+                    <div class="flex justify-between items-center pt-6 border-t border-white/5">
+                        <span class="text-2xl font-inter font-light">R$ 150,00</span>
+                        <button class="bg-white text-black hover:bg-orange-500 hover:text-white font-inter font-bold px-6 py-3 rounded-full transition-all duration-300">Comprar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- SOBRE NÓS -->
+    <section id="sobre" class="py-32 relative">
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute top-1/2 left-0 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl -translate-y-1/2"></div>
+        </div>
+        <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
+            <!-- Imagem com borda decorativa -->
+            <div class="relative">
+                <div class="absolute -inset-2 rounded-[2rem] bg-gradient-to-br from-orange-500/20 to-transparent"></div>
+                <img src="https://image.pollinations.ai/prompt/ultra%20luxury%20pet%20shop%20interior,%20golden%20hour,%20cinematic%208k?width=900&height=1000&nologo=true"
+                     alt="Sobre Nós" class="relative rounded-[1.8rem] w-full h-[520px] object-cover">
+                <div class="absolute bottom-8 -right-8 glass border border-white/10 rounded-2xl p-6 shadow-2xl">
+                    <p class="text-4xl font-playfair font-black text-orange-500">12+</p>
+                    <p class="text-sm font-inter text-gray-400 uppercase tracking-widest mt-1">Anos de Excelência</p>
+                </div>
+            </div>
+            <!-- Texto -->
+            <div>
+                <span class="text-orange-500 uppercase tracking-widest text-sm font-bold">Nossa Essência</span>
+                <h3 class="text-5xl font-playfair font-bold mt-4 mb-8 leading-tight">Dedicados a Quem Ama <br> com Todo o Coração</h3>
+                <p class="text-gray-300 font-inter leading-relaxed mb-6">
+                    Somos uma marca de luxo que eleva a experiência pet a um novo patamar. Nossa missão é fornecer produtos de excelência para que seu companheiro viva com a dignidade e o carinho que merece.
+                </p>
+                <p class="text-gray-400 font-inter leading-relaxed mb-10">
+                    Nossa equipe é formada por veterinários, designers e apaixonados por animais que trabalham juntos para criar experiências únicas e seguras.
+                </p>
+                <div class="grid grid-cols-3 gap-6">
+                    <div class="text-center p-4 glass rounded-2xl border border-white/5">
+                        <p class="text-3xl font-playfair font-black text-orange-500">500+</p>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider mt-2">Produtos</p>
+                    </div>
+                    <div class="text-center p-4 glass rounded-2xl border border-white/5">
+                        <p class="text-3xl font-playfair font-black text-orange-500">98%</p>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider mt-2">Satisfação</p>
+                    </div>
+                    <div class="text-center p-4 glass rounded-2xl border border-white/5">
+                        <p class="text-3xl font-playfair font-black text-orange-500">5K+</p>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider mt-2">Clientes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- RODAPÉ / CONTATO -->
+    <footer id="contato" class="py-32 relative overflow-hidden border-t border-white/5">
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute bottom-0 right-0 w-[600px] h-[400px] bg-orange-600/5 rounded-full blur-3xl"></div>
+        </div>
+        <div class="container mx-auto px-6 text-center relative z-10">
+            <span class="text-orange-500 uppercase tracking-widest text-sm font-bold">Entre em Contato</span>
+            <h3 class="text-6xl font-playfair font-black mt-4 mb-6">Pronto para <span class="text-orange-500 italic">Mimar</span> <br> seu Pet?</h3>
+            <p class="text-gray-400 font-inter text-xl mb-14 max-w-lg mx-auto">
+                Nossa equipe está pronta para ajudar você a encontrar a experiência perfeita.
+            </p>
+            <a href="https://wa.me/5551999999999?text=Quero%20mais%20detalhes"
+               class="inline-flex items-center gap-4 bg-orange-500 hover:bg-orange-600 text-white font-inter font-bold text-lg px-12 py-6 rounded-full hover:scale-105 transition-all duration-300 shadow-2xl shadow-orange-500/30">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                Fale pelo WhatsApp
+            </a>
+
+            <div class="mt-20 pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="font-playfair font-black text-xl text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-600">PET SHOP LUXO</p>
+                <p class="text-gray-600 font-inter text-sm">&copy; 2025 · Todos os direitos reservados</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

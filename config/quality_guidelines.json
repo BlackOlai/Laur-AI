@@ -1,0 +1,59 @@
+{
+  "copywriting": {
+    "regra_1": "Linguagem de 5ª série: Seja claro, direto e evite jargões complexos. As frases devem ser curtas e o ritmo deve ser rápido.",
+    "regra_2": "O Gancho (Hook): O primeiro contato (primeira frase ou slide) deve SEMPRE gerar curiosidade extrema, polêmica ou um contraintuitivo que prenda a atenção em menos de 3 segundos.",
+    "regra_3": "Emoção e Dor: Toque em dores reais. As pessoas não compram características, compram transformações. Mostre o que elas perdem se não prestarem atenção.",
+    "regra_4": "Proibido ser robótico: Não use frases como 'Neste conteúdo vamos explorar...', 'Espero que tenham gostado...', 'Bem vindos'. Vá direto ao ponto.",
+    "regra_5": "Sem excesso de Emojis: Use emojis com moderação, apenas para guiar os olhos (bullet points). Nunca use mais de 1 emoji por frase."
+  },
+  "design_e_visual": {
+    "regra_1": "Dark Premium: As cores predominantes devem ser escuras (Dark Blue, Black, Charcoal) com acentos de alto contraste (Âmbar/Amarelo, Teal).",
+    "regra_2": "Qualidade Cinematográfica: As imagens de fundo nunca devem parecer bancos de imagens baratos. Priorizar 'cinematic lighting', 'high contrast', 'close up'.",
+    "regra_3": "Minimalismo: Menos é mais. Muito espaço em branco (ou espaço escuro) ao redor do texto para gerar sensação de luxo e facilidade de leitura."
+  },
+  "canais": {
+    "visao_milionaria": {
+      "nome": "Visão Milionária",
+      "nicho": "Desenvolvimento pessoal e profissional, Motivacional",
+      "cores_primarias": [
+        "#FFD700",
+        "#FFFFFF"
+      ],
+      "cor_fundo_predominante": "#000000",
+      "fonte": "Montserrat-Black",
+      "vibe": "Luxo, poder, escudo, solidez, alfa",
+      "regras_thumbnail": "Usar fundo cinemático super escurecido (vignette forte). O texto do gancho deve ser amarelo/ouro ou branco.",
+      "voz_base": "vozes_base/visao_milionaria.wav"
+    },
+    "corpo_de_tita": {
+      "nome": "Corpo de Titã",
+      "nicho": "Saúde, Longevidade, Biohacking",
+      "cores_primarias": [
+        "#00FF7F",
+        "#FFFFFF"
+      ],
+      "cor_fundo_predominante": "#000000",
+      "fonte": "Montserrat-Black",
+      "vibe": "Científico, microscópico, raios-x, alta performance",
+      "regras_thumbnail": "Usar fundos escuros de anatomia ou alimentos com alto contraste. Texto do gancho em verde esmeralda vibrante ou branco.",
+      "voz_base": "vozes_base/corpo_de_tita.wav"
+    },
+    "fe_revelada": {
+      "nome": "Fé Revelada",
+      "nicho": "Curiosidades e Mistérios Bíblicos",
+      "cores_primarias": [
+        "#DC143C",
+        "#B8860B"
+      ],
+      "cor_fundo_predominante": "#000000",
+      "fonte": "Montserrat-Black",
+      "vibe": "Épico, fumaça, pergaminhos antigos, realeza",
+      "regras_thumbnail": "Usar texturas épicas, estilo The Chosen ou History Channel. Fundo dark premium com texto do gancho em vermelho carmesim.",
+      "voz_base": [
+        "vozes_base/fe_revelada_male.wav",
+        "vozes_base/fe_revelada_male1.wav",
+        "vozes_base/fe_revelada_female.wav"
+      ]
+    }
+  }
+}

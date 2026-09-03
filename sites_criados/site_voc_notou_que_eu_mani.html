@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Você Notou Que Eu Mani</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @tailwind base;
+        @tailwind components;
+        @tailwind utilities;
+        
+        @layer base {
+            @font-face {
+                font-family: 'Inter';
+                src: url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+            }
+            @font-face {
+                font-family: 'Playfair Display';
+                src: url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
+            }
+        }
+    </style>
+</head>
+<body class="bg-[#050505] text-white">
+    <nav id="home" class="fixed top-0 left-0 right-0 flex justify-between items-center py-4 backdrop-blur-md bg-white/10">
+        <a href="#home" class="ml-4 text-lg font-bold hover:scale-110 transition duration-300">Home</a>
+        <ul class="flex justify-center items-center gap-8">
+            <li><a href="#colecao" class="text-lg font-bold hover:scale-110 transition duration-300">Coleção</a></li>
+            <li><a href="#sobre" class="text-lg font-bold hover:scale-110 transition duration-300">Sobre</a></li>
+            <li><a href="#contato" class="text-lg font-bold hover:scale-110 transition duration-300">Contato</a></li>
+        </ul>
+        <a href="#contato" class="mr-4 text-lg font-bold hover:scale-110 transition duration-300">Contate-nos</a>
+    </nav>
+    <section id="hero" class="h-screen w-screen flex justify-center items-center">
+        <img src="https://image.pollinations.ai/prompt/ultra%20luxury%20cinematic%20você%20notou%20que%20eu%20mani%20photo,%20dramatic%20lighting,%208k?width=1920&height=1080&nologo=true" alt="Você Notou Que Eu Mani" class="absolute top-0 left-0 right-0 bottom-0 object-cover object-center">
+        <div class="backdrop-blur-md bg-white/10 py-8 px-12 flex flex-col justify-center items-center">
+            <h1 class="text-5xl font-bold font-playfair mb-4">Você Notou Que Eu Mani</h1>
+            <button class="bg-[#D4AF37] py-4 px-8 text-lg font-bold hover:scale-110 transition duration-300" onclick="window.location.href='#colecao'">Explorar Coleção</button>
+        </div>
+    </section>
+    <section id="colecao" class="py-24">
+        <div class="container mx-auto grid grid-cols-3 gap-8">
+            <div class="bg-white/10 backdrop-blur-md py-8 px-12 flex flex-col justify-center items-center">
+                <img src="https://image.pollinations.ai/prompt/premium%20você%20notou%20que%20eu%20mani%20product%20shot,%20studio%20lighting,%20professional?width=800&height=800&nologo=true" alt="Produtos" class="w-64 h-64 object-cover object-center mb-4">
+                <h2 class="text-3xl font-bold font-playfair mb-2">Produto 1</h2>
+                <p class="text-lg font-bold mb-4">R$ 999,99</p>
+                <button class="bg-[#D4AF37] py-4 px-8 text-lg font-bold hover:scale-110 transition duration-300">Comprar</button>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md py-8 px-12 flex flex-col justify-center items-center">
+                <img src="https://image.pollinations.ai/prompt/luxury%20você%20notou%20que%20eu%20mani%20detail%20macro%20shot,%20cinematic?width=800&height=800&nologo=true" alt="Produtos" class="w-64 h-64 object-cover object-center mb-4">
+                <h2 class="text-3xl font-bold font-playfair mb-2">Produto 2</h2>
+                <p class="text-lg font-bold mb-4">R$ 1.499,99</p>
+                <button class="bg-[#D4AF37] py-4 px-8 text-lg font-bold hover:scale-110 transition duration-300">Comprar</button>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md py-8 px-12 flex flex-col justify-center items-center">
+                <img src="https://image.pollinations.ai/prompt/exclusive%20você%20notou%20que%20eu%20mani%20model%20wearing%20product,%20lifestyle%20luxury?width=800&height=800&nologo=true" alt="Produtos" class="w-64 h-64 object-cover object-center mb-4">
+                <h2 class="text-3xl font-bold font-playfair mb-2">Produto 3</h2>
+                <p class="text-lg font-bold mb-4">R$ 2.499,99</p>
+                <button class="bg-[#D4AF37] py-4 px-8 text-lg font-bold hover:scale-110 transition duration-300">Comprar</button>
+            </div>
+        </div>
+    </section>
+    <section id="sobre" class="py-24">
+        <div class="container mx-auto px-12 py-8 flex flex-col justify-center items-center">
+            <h2 class="text-5xl font-bold font-playfair mb-4">Sobre Nós</h2>
+            <p class="text-lg font-bold mb-8">Somos uma marca de luxo que se destaca pela sua exclusividade e sofisticação. Nossa missão é fornecer produtos de alta qualidade que atendam às necessidades dos clientes mais exigentes.</p>
+            <p class="text-lg font-bold mb-4">Nossa equipe de designers e especialistas trabalham incansavelmente para criar produtos que sejam não apenas bonitos, mas também funcionais e confortáveis.</p>
+        </div>
+    </section>
+    <footer id="contato" class="py-4">
+        <div class="container mx-auto flex justify-center items-center">
+            <a href="https://wa.me/5551999999999?text=Quero%20mais%20detalhes" class="bg-[#D4AF37] py-4 px-8 text-lg font-bold hover:scale-110 transition duration-300">Contate-nos no WhatsApp</a>
+        </div>
+    </footer>
+</body>
+</html>

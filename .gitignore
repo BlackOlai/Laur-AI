@@ -1,0 +1,108 @@
+# http://www.gnu.org/software/automake
+
+Makefile.in
+/ar-lib
+/mdate-sh
+/py-compile
+/test-driver
+/ylwrap
+.deps/
+.dirstamp
+
+# http://www.gnu.org/software/autoconf
+
+autom4te.cache
+/autoscan.log
+/autoscan-*.log
+/aclocal.m4
+/compile
+/config.cache
+/config.guess
+/config.h.in
+/config.log
+/config.status
+/config.sub
+/configure
+/configure.scan
+/depcomp
+/install-sh
+/missing
+/stamp-h1
+
+# https://www.gnu.org/software/libtool/
+
+/ltmain.sh
+
+# http://www.gnu.org/software/texinfo
+
+/texinfo.tex
+
+# http://www.gnu.org/software/m4/
+
+m4/libtool.m4
+m4/ltoptions.m4
+m4/ltsugar.m4
+m4/ltversion.m4
+m4/lt~obsolete.m4
+
+# Generated Makefile
+# (meta build system like autotools,
+# can automatically generate from config.status script
+# (which is called by configure script))
+Makefile
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+.venv/
+.venv_tts/
+.venv*/
+venv/
+venv*/
+ENV/
+
+# Jarvis AI - Sensitive Files
+credentials.json
+token.json
+.env
+.env.local
+*.mp3
+*.wav
+# Manter placeholders e scripts da pasta vozes_base e scratch
+!vozes_base/*.txt
+!scratch/test_voice_cloning.py
+!scratch/test_pocket_tts.py
+# Ignorar audios de teste gerados pelo scratch
+scratch/teste_clonagem_*.wav
+scratch/test_rafael*.wav
+
+# Test Files
+test_*.py
+diagnose_connection.py
+check_voices.py
+project.py
+
+# Documentation (Optional to push, but user asked to ignore non-core md)
+*.md
+!README.md
+!README_COMPLETE.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local databases / caches
+.chroma_db/
+*.sqlite3
+*.db
+
+# Cline checkpoints
+.cline/

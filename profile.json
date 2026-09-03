@@ -1,0 +1,22 @@
+{
+    "owner_name": "Olair",
+    "business_name": "MG Solution",
+    "business_description": "Desenvolvimento de soluções de IA avançadas, com foco no produto GestãoPro: um orquestrador Multi-Agente que coordena especialistas virtuais para acelerar resultados em estratégia, operações e crescimento de negócios.",
+    "main_product": {
+        "name": "GestãoPro",
+        "url": "https://mg-solution.vercel.app/",
+        "core_value": "Orquestração de agentes de IA para gestão empresarial de alta performance."
+    },
+    "core_values": [
+        "Inovação Disruptiva",
+        "Automação Inteligente",
+        "Escalabilidade via IA"
+    ],
+    "behavior_rules": {
+        "no_thanking": true,
+        "direct_answers": true,
+        "no_generic_info": true,
+        "step_by_step_thinking": true
+    },
+    "voice": "pt-BR-FranciscaNeural"
+}
