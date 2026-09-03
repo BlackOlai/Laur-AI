@@ -176,6 +176,13 @@ def chat(query):
 def main_loop():
     # Inicia tarefas de background (Clima, Notícias, etc)
     threading.Thread(target=background_tasks, daemon=True).start()
+
+    # Inicia o Heartbeat (executa tarefas agendadas vencidas a cada 30s)
+    try:
+        from core.heartbeat import start_heartbeat
+        start_heartbeat(say)
+    except Exception as e:
+        print(f"[Warning] Falha ao iniciar o heartbeat: {e}")
     
     # Saudações dinâmicas
     hora = datetime.datetime.now().hour
