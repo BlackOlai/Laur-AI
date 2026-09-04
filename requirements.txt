@@ -24,3 +24,10 @@ trafilatura>=1.12.0
 chromadb>=0.4.22
 sentence-transformers>=2.3.1
 mcp>=1.2.0
+
+# Interface (Launchers)
+# launcher_qt.py (run_laura_qt.bat — principal) e main_launcher.py (run_laura.bat — legado)
+PySide6>=6.6.0
+pywebview>=5.0.0
+psutil>=5.9.0
+pywinstyles>=1.8
