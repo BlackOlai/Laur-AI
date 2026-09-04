@@ -124,11 +124,36 @@ def _execute_announce(task, say):
     say(str(task.get("message", "")))
     return "anunciado"
 
+def _execute_job(task, say):
+    """
+    Job composto: dispara o agente autônomo para produzir de verdade
+    (tendências → copy → carrossel/vídeo...) sem interação de voz.
+    Requer get_context injetado no start_heartbeat (Laura.py fornece).
+    """
+    getter = _EXEC_STATE.get("get_context")
+    if not getter:
+        return "sem contexto (heartbeat iniciado sem get_context)"
+    try:
+        ctx = getter()
+        if not ctx or not ctx.get("client"):
+            return "contexto de IA indisponível"
+        ctx["auto_confirm"] = True  # executa sem pedir confirmação por voz
+        from skills.autonomous_agent import execute as run_agent
+        objetivo = str(task.get("message", "") or task.get("job", "produzir conteúdo"))
+        run_agent(objetivo, say, lambda *a, **k: "none", ctx)
+        return "job executado pelo agente autônomo"
+    except Exception as e:
+        return f"erro: {e}"
+
 EXECUTORS = {
     "whatsapp": _execute_whatsapp,
     "reminder": _execute_reminder,
     "announce": _execute_announce,
+    "job": _execute_job,
 }
+
+# Estado interno compartilhado entre start_heartbeat e executores
+_EXEC_STATE = {"get_context": None}
 
 # ---------------------------------------------------------------------------
 # Ciclo principal
@@ -162,10 +187,15 @@ def beat(say, context=None):
 
     return executed
 
-def start_heartbeat(say, interval=None):
-    """Inicia o daemon do heartbeat em thread separada (daemon=True)."""
+def start_heartbeat(say, interval=None, get_context=None):
+    """Inicia o daemon do heartbeat em thread separada (daemon=True).
+
+    get_context: função opcional que retorna o contexto completo da Laura
+    (client, model_to_use, skill_manager...). Necessário para jobs compostos.
+    """
     if interval is None:
         interval = INTERVAL
+    _EXEC_STATE["get_context"] = get_context
 
     def loop():
         print(f"[Heartbeat] Ativo. Varredura a cada {interval}s.")

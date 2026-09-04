@@ -86,15 +86,23 @@ def execute(query, say, takeCommand, context=None):
         for etapa in plan_json['etapas']:
             say(f"Passo {etapa['passo']}: {etapa['descricao']}")
         
-        say("Devo iniciar a execução agora?")
-        confirm = takeCommand(timeout=10)
-        if not confirm or not any(w in confirm.lower() for w in ["sim", "pode", "ok", "confirmo", "execute"]):
-            say("Entendido. Plano arquivado.")
-            return True
+        # 2. EXECUÇÃO (pipeline real — Fase 2 + 2.5)
+        from core.skill_protocol import normalize, inject_context
+        from core.state import state as db_state
 
-        # 2. EXECUÇÃO
-        project_context = {"main_goal": query, "steps": plan_json['etapas'], "results": []}
+        job_id = db_state.create_job("agente_autonomo", {"objetivo": query})
+        project_context = {"main_goal": query, "steps": plan_json['etapas'], "results": [], "job_id": job_id}
         save_project_context(project_context)
+
+        auto = context.get("auto_confirm", False) if context else False
+
+        if not auto:
+            say("Devo iniciar a execução agora?")
+            confirm = takeCommand(timeout=10)
+            if not confirm or not any(w in confirm.lower() for w in ["sim", "pode", "ok", "confirmo", "execute"]):
+                say("Entendido. Plano arquivado.")
+                db_state.finish_job(job_id, status="failed", summary="plano arquivado pelo usuário")
+                return True
 
         for etapa in plan_json['etapas']:
             say(f"Executando Passo {etapa['passo']}: {etapa['descricao']}...")
@@ -102,35 +110,50 @@ def execute(query, say, takeCommand, context=None):
             skill_to_call = etapa['skill']
             cmd = etapa['comando_para_skill']
             
-            # Adicionar contexto anterior ao comando
-            if project_context["results"]:
-                last_result = project_context["results"][-1]["output"]
-                cmd += f"\nContexto do passo anterior: {last_result[:1000]}"
+            # Fase 2.5: injeta o RESULTADO REAL dos passos anteriores no comando
+            cmd = inject_context(cmd, project_context["results"])
 
-            # Tenta encontrar a skill e executar
             success = False
+            step_result = None
             if skill_manager:
                 target_skill = next((s for s in skill_manager.skills if s.__name__ == skill_to_call), None)
                 if target_skill:
-                    # Captura de saída? Como as skills usam 'say', o resultado é falado.
-                    # Para um orquestrador real, precisaríamos que as skills retornassem dados.
-                    # Por enquanto, vamos simular o fluxo.
                     try:
                         res = target_skill.execute(cmd, say, takeCommand, context)
-                        project_context["results"].append({"passo": etapa['passo'], "output": "Concluído com sucesso."})
-                        success = True
+                        step_result = normalize(res, skill_to_call)
+                        success = step_result["status"] == "ok"
+                        output = step_result.get("summary") or "Concluído."
                     except Exception as e:
-                        print(f"Erro na etapa {etapa['passo']}: {e}")
-                        project_context["results"].append({"passo": etapa['passo'], "output": f"Erro: {str(e)}"})
+                        step_result = normalize(None, skill_to_call)
+                        step_result["summary"] = f"Erro: {e}"
+                        output = f"Erro: {e}"
                 else:
-                    say(f"Aviso: Habilidade {skill_to_call} não encontrada. Tentando modo geral.")
-                    # Fallback para chat se a skill não existe
-                    project_context["results"].append({"passo": etapa['passo'], "output": "Executado via inteligência geral."})
+                    output = f"Skill {skill_to_call} não encontrada — executado via inteligência geral."
+                    step_result = {"status": "ok", "data": {}, "artifacts": [], "summary": output}
                     success = True
+            else:
+                output = "SkillManager indisponível."
+                step_result = {"status": "failed", "data": {}, "artifacts": [], "summary": output}
 
+            # Persiste no SQLite (auditável) e alimenta o contexto da pipeline
+            step_result["skill"] = skill_to_call
+            project_context["results"].append(step_result)
+            db_state.update_step(job_id, etapa['passo'], skill_to_call,
+                                 step_result["status"], step_result["data"], output)
+            for art in step_result.get("artifacts", []):
+                db_state.add_artifact(job_id, art, "file")
             save_project_context(project_context)
+
+            # Fase 3 (survival): etapa crítica falhou — aborta com relatório
+            if not success:
+                say(f"O passo {etapa['passo']} falhou. Vou parar por aqui e registrar tudo no log, senhor.")
+                db_state.finish_job(job_id, status="failed",
+                                    summary=f"falhou no passo {etapa['passo']}: {output}")
+                return True
             time.sleep(1)
 
+        db_state.finish_job(job_id, status="done",
+                            summary=f"{len(plan_json['etapas'])} etapas concluídas")
         say("Senhor, todas as etapas do projeto foram concluídas conforme o planejado.")
         
     except Exception as e:

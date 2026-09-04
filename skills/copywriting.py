@@ -35,7 +35,16 @@ def execute(query, say, takeCommand, context=None):
                 model=model,
                 messages=[{"role": "user", "content": prompt}]
             )
-            say(response.choices[0].message.content)
+            texto_copy = response.choices[0].message.content
+            say(texto_copy)
+            # Protocolo estruturado: a copy REAL fica disponível para a pipeline
+            from core.skill_protocol import ok
+            return ok(
+                data={"copy": texto_copy, "objetivo": objetivo},
+                summary=f"Copy AIDA gerada para: {str(objetivo)[:80]}",
+            )
         except Exception:
             say("Erro ao gerar copy.")
+            from core.skill_protocol import fail
+            return fail("erro de LLM ao gerar copy")
     return True

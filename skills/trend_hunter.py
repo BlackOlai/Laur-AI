@@ -80,7 +80,8 @@ def execute(query, say, takeCommand, context=None):
 
     if not trends_data:
         say("Não consegui encontrar tendências. Os serviços podem estar temporariamente fora do ar.")
-        return True
+        from core.skill_protocol import fail
+        return fail("nenhuma fonte de tendências disponível")
 
     context_str = json.dumps(trends_data, ensure_ascii=False, indent=2)
     prompt = f"""Você é a 'Trend Hunter' da MG Solution, especialista em viralização.
@@ -111,8 +112,21 @@ Evite introduções, vá direto às 3 ideias. Use emojis.
         print("="*40)
         print(ideias)
         print("="*40 + "\n")
+
+        # Protocolo estruturado: as ideias REAIS ficam disponíveis para a pipeline
+        from core.skill_protocol import ok
+        pipeline_result = ok(
+            data={"ideias": ideias, "tendencias": trends_data},
+            summary="3 ideias de conteúdo geradas a partir de tendências reais",
+        )
         
         say("Pronto, mestre! Compilei três ideias virais incríveis baseadas nas tendências de hoje. Confira os detalhes no painel.")
+
+        # Modo autônomo (heartbeat/orquestrador): sem interação de voz —
+        # apenas retorna as ideias para a próxima etapa da pipeline.
+        if context and context.get("auto_confirm"):
+            return pipeline_result
+
         say("Deseja que eu pegue alguma dessas ideias e já crie um roteiro ou vídeo explicativo?")
         
         # Pega a resposta do usuário
@@ -135,6 +149,7 @@ Evite introduções, vá direto às 3 ideias. Use emojis.
                 say("Erro interno no Skill Manager.")
         else:
             say("Tudo bem. Fico à disposição para quando quiser produzir.")
+        return pipeline_result
 
     except Exception as e:
         say("Houve um erro ao gerar as ideias com a inteligência artificial.")

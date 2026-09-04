@@ -93,6 +93,9 @@ def execute(query, say, takeCommand, context=None):
 
     topic = re.sub(r'laura|criar|gerar|fazer|um|uma|carrossel|post|instagram|sobre', '', query.lower()).strip()
     if not topic:
+        if context and context.get("auto_confirm"):
+            from core.skill_protocol import fail
+            return fail("carrossel sem tema definido no job")
         say("Qual será o tema do carrossel?")
         topic = takeCommand()
         if not topic or topic == "none":
@@ -103,7 +106,8 @@ def execute(query, say, takeCommand, context=None):
     copy_data = _generate_carousel_copy(client, model, topic)
     if not copy_data or "slides" not in copy_data:
         say("Tive um problema ao gerar a estrutura do carrossel. Podemos tentar novamente?")
-        return True
+        from core.skill_protocol import fail
+        return fail("falha ao gerar copy do carrossel")
 
     # --- PASSO DE QA (CONTROLE DE QUALIDADE) ---
     try:
@@ -260,4 +264,14 @@ const fs = require('fs');
 
     say("Abrindo a pasta com os resultados do seu carrossel.")
     webbrowser.open(f"file:///{os.path.abspath(project_dir).replace(os.sep, '/')}")
-    return True
+
+    # Protocolo estruturado: artefatos reais + roteiro para a pipeline
+    from core.skill_protocol import ok
+    artifacts = [html_path]
+    artifacts += [os.path.join(project_dir, f"slide_{i}.png")
+                  for i in range(1, len(copy_data.get("slides", [])) + 1)]
+    return ok(
+        data={"tema": copy_data.get("tema", topic), "roteiro": copy_data, "diretorio": project_dir},
+        artifacts=artifacts,
+        summary=f"Carrossel de {len(copy_data.get('slides', []))} slides criado em {project_dir}",
+    )

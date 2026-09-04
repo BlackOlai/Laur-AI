@@ -173,14 +173,23 @@ def chat(query):
         log_system_error("Chat Fallback", e)
         say("Olair, tive um pequeno problema de conexão com meu cérebro agora.")
 
+def build_laura_context():
+    """Monta o contexto completo para execução autônoma (heartbeat/jobs)."""
+    return {
+        "say": say, "takeCommand": takeCommand, "set_status": set_status,
+        "log_system_error": log_system_error, "client": client,
+        "model_to_use": model_to_use, "skill_manager": skill_manager,
+        "memory_manager": memory_manager,
+    }
+
 def main_loop():
     # Inicia tarefas de background (Clima, Notícias, etc)
     threading.Thread(target=background_tasks, daemon=True).start()
 
-    # Inicia o Heartbeat (executa tarefas agendadas vencidas a cada 30s)
+    # Inicia o Heartbeat (executa tarefas e JOBS agendados a cada 30s)
     try:
         from core.heartbeat import start_heartbeat
-        start_heartbeat(say)
+        start_heartbeat(say, get_context=build_laura_context)
     except Exception as e:
         print(f"[Warning] Falha ao iniciar o heartbeat: {e}")
     

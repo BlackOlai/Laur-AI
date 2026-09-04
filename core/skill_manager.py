@@ -72,6 +72,14 @@ class SkillManager:
                 result = skill.execute(query, say, takeCommand, context)
                 # Se a skill retornar False, significa que ela recusou o comando
                 if result is not False:
+                    # Protocolo estruturado (Fase 2.5): expõe o resultado REAL
+                    # no contexto para o orquestrador/pipeline consumir.
+                    try:
+                        from core.skill_protocol import normalize
+                        if context is not None:
+                            context["last_skill_result"] = normalize(result, skill.__name__)
+                    except Exception:
+                        pass
                     return True
             except Exception as e:
                 print(f"Erro ao executar skill {skill.__name__}: {e}")
