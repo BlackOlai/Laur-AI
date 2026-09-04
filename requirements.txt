@@ -5,7 +5,7 @@ uvicorn[standard]==0.32.1
 gunicorn==23.0.0
 pydantic==2.10.6
 python-multipart==0.0.18
-edge-tts==6.1.15
+edge-tts>=7.2.8
 gtts==2.5.4
 openai>=1.0.0
 requests>=2.31.0
