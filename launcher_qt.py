@@ -4,10 +4,11 @@ import json
 import threading
 import time
 import psutil
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtCore import Qt, QUrl, QObject, Slot, Signal, QTimer
 from PySide6.QtWebChannel import QWebChannel
+from core.file_processor import extract_text
 from Laura import main_loop, validate_config
 
 # Configurações de Caminho (Forçando Absoluto para evitar desencontros)
@@ -33,6 +34,57 @@ class Bridge(QObject):
         """Move a janela com base no deslocamento do mouse."""
         pos = self.window.pos()
         self.window.move(pos.x() + dx, pos.y() + dy)
+
+    @Slot(result=str)
+    def open_file_dialog(self):
+        """Abre o diálogo nativo de arquivo (QFileDialog) e envia o conteúdo
+        extraído ao Laura via input.txt. Paridade com widget_launcher.py.
+        Retorna JSON string (parseado no shim de compatibilidade)."""
+        try:
+            file_filter = (
+                "Arquivos suportados (*.pdf *.docx *.doc *.xlsx *.xls *.csv *.jpg *.png *.webp);;"
+                "Documentos (*.pdf *.docx *.doc *.xlsx *.xls *.csv);;"
+                "Imagens (*.jpg *.png *.webp)"
+            )
+            path, _ = QFileDialog.getOpenFileName(self.window, "Anexar arquivo para a Laura", "", file_filter)
+            if not path:
+                return json.dumps({"success": False, "error": "Nenhum arquivo selecionado."})
+            print(f"[QtAPI] Arquivo selecionado: {path}")
+            return json.dumps(self._process_uploaded_file(path))
+        except Exception as e:
+            print(f"[QtAPI] Erro no diálogo de arquivo: {e}")
+            return json.dumps({"success": False, "error": str(e)})
+
+    def _process_uploaded_file(self, file_path):
+        """Processa o arquivo e envia o conteúdo extraído ao Laura."""
+        ext = os.path.splitext(file_path)[1].lower()
+
+        # Imagens: envia comando de visão (o núcleo decide como analisar)
+        if ext in ['.jpg', '.jpeg', '.png', '.webp']:
+            prompt = f"[IMAGEM ANEXADA: {file_path}] Por favor, analise esta imagem."
+            try:
+                with open(INPUT_FILE, "w", encoding="utf-8") as f:
+                    f.write(prompt)
+                return {"success": True, "filename": os.path.basename(file_path), "type": "IMAGE", "sent": True}
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        # Documentos: extrai texto e envia para análise
+        result = extract_text(file_path)
+        if result.get("success"):
+            prompt = (
+                f"[ARQUIVO ANEXADO: {result['filename']} ({result['type']})]"
+                f"\n\nConteúdo do arquivo:\n{result['text']}"
+                f"\n\n---\nAnalise o conteúdo acima e me dê um resumo."
+            )
+            try:
+                with open(INPUT_FILE, "w", encoding="utf-8") as f:
+                    f.write(prompt)
+                result["sent"] = True
+            except Exception as e:
+                result["sent"] = False
+                result["error"] = f"Erro ao enviar para o Laura: {e}"
+        return result
 
     @Slot(result=dict)
     def get_status(self):
@@ -165,6 +217,14 @@ class LauraWidget(QMainWindow):
                     api: {
                         resize_window: (w, h) => window.backend.resize_window(w, h),
                         move_window: (dx, dy) => window.backend.move_window(dx, dy),
+                        open_file_dialog: () => {
+                            return new Promise((resolve) => {
+                                window.backend.open_file_dialog((result) => {
+                                    try { resolve(JSON.parse(result)); }
+                                    catch (e) { resolve({"success": false, "error": "resposta inválida do diálogo"}); }
+                                });
+                            });
+                        },
                         send_message: (msg) => {
                             return new Promise((resolve) => {
                                 window.backend.send_message(msg, (result) => resolve(result));

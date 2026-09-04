@@ -103,6 +103,5 @@ Thumbs.db
 .chroma_db/
 *.sqlite3
 *.db
-
 # Cline checkpoints
 .cline/
