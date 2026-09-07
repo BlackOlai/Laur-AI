@@ -103,5 +103,6 @@ Thumbs.db
 .chroma_db/
 *.sqlite3
 *.db
+heartbeat_log.json
 # Cline checkpoints
 .cline/
