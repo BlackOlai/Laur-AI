@@ -94,6 +94,15 @@ def execute(query, say, takeCommand, context=None):
         project_context = {"main_goal": query, "steps": plan_json['etapas'], "results": [], "job_id": job_id}
         save_project_context(project_context)
 
+        # HUD: publica progresso do job (anel do núcleo + feed de atividade)
+        try:
+            from core.heartbeat import push_activity, set_job_progress, clear_job_progress
+            total_steps = len(plan_json['etapas'])
+            push_activity(f"Job iniciado: {str(query)[:80]}")
+        except Exception:
+            push_activity = set_job_progress = clear_job_progress = None
+            total_steps = len(plan_json['etapas'])
+
         auto = context.get("auto_confirm", False) if context else False
 
         if not auto:
@@ -144,16 +153,31 @@ def execute(query, say, takeCommand, context=None):
                 db_state.add_artifact(job_id, art, "file")
             save_project_context(project_context)
 
+            # HUD: atualiza anel de progresso e feed
+            if set_job_progress:
+                set_job_progress(etapa['passo'], total_steps,
+                                 f"{skill_to_call}: {etapa['descricao']}")
+            if push_activity:
+                push_activity(f"Passo {etapa['passo']}/{total_steps} [{skill_to_call}]: {output[:80]}")
+
             # Fase 3 (survival): etapa crítica falhou — aborta com relatório
             if not success:
                 say(f"O passo {etapa['passo']} falhou. Vou parar por aqui e registrar tudo no log, senhor.")
                 db_state.finish_job(job_id, status="failed",
                                     summary=f"falhou no passo {etapa['passo']}: {output}")
+                if push_activity:
+                    push_activity(f"Job FALHOU no passo {etapa['passo']}: {output[:70]}")
+                if clear_job_progress:
+                    clear_job_progress()
                 return True
             time.sleep(1)
 
         db_state.finish_job(job_id, status="done",
                             summary=f"{len(plan_json['etapas'])} etapas concluídas")
+        if push_activity:
+            push_activity(f"Job concluído: {str(query)[:70]}")
+        if clear_job_progress:
+            clear_job_progress()
         say("Senhor, todas as etapas do projeto foram concluídas conforme o planejado.")
         
     except Exception as e:

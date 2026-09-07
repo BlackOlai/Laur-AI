@@ -622,6 +622,113 @@
             cursor: pointer;
             z-index: 100;
         }
+
+        /* ============================================
+           PACOTE 1 — HUD REATIVA (Fase 2.6)
+           Cores semânticas + núcleo reativo + anel de job
+           ============================================ */
+        :root {
+            --amber: #FFC300;
+            --violet: #B36BFF;
+            --red: #FF4D5E;
+            --accent: var(--cyan);
+            --accent-glow: var(--cyan-glow);
+        }
+
+        body.st-thinking { --accent: var(--amber); --accent-glow: rgba(255, 195, 0, 0.4); }
+        body.st-working  { --accent: var(--violet); --accent-glow: rgba(179, 107, 255, 0.45); }
+        body.st-error    { --accent: var(--red); --accent-glow: rgba(255, 77, 94, 0.5); }
+
+        .hud-container {
+            border-color: var(--accent);
+            box-shadow: inset 0 0 50px var(--accent-glow), 0 0 18px var(--accent-glow);
+            transition: border-color 0.4s, box-shadow 0.4s;
+        }
+        .logo-text, #digital-date, #status-text, .panel-title, .hud-btn,
+        .stat-bar-fill, #chat-input + .hud-btn, .close-btn {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+        .hud-btn:hover { background: var(--accent-glow); }
+        .stat-bar-fill { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        .chat-history::-webkit-scrollbar-thumb { background: var(--accent); }
+
+        /* Velocidade do núcleo reage ao estado */
+        .hud-container .ring-1 { animation-duration: 8s; }
+        .hud-container .ring-2 { animation-duration: 5s; }
+        body.st-thinking .hud-container .ring-1,
+        body.st-thinking .hud-container .ring-2 { animation-duration: 1.6s; }
+        body.st-working  .hud-container .ring-1,
+        body.st-working  .hud-container .ring-2 { animation-duration: 0.9s; }
+
+        /* Anel de progresso do job (SVG ao redor do núcleo) */
+        .job-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 110px; height: 110px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .job-ring.active { opacity: 1; }
+        .job-ring circle {
+            fill: none;
+            stroke-width: 3;
+        }
+        .job-ring .jr-bg { stroke: rgba(255, 255, 255, 0.12); }
+        .job-ring .jr-fg {
+            stroke: var(--violet);
+            stroke-linecap: round;
+            filter: drop-shadow(0 0 4px var(--violet));
+            transition: stroke-dashoffset 0.6s ease;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .job-label {
+            position: absolute;
+            bottom: 40px;
+            font-family: var(--font-hud);
+            font-size: 8px;
+            letter-spacing: 1px;
+            color: var(--violet);
+            opacity: 0;
+            transition: opacity 0.4s;
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .job-label.active { opacity: 1; }
+
+        /* Feed de atividade autônoma */
+        .activity-feed {
+            max-height: 88px;
+            overflow-y: auto;
+            font-size: 9px;
+            line-height: 1.5;
+        }
+        .activity-feed::-webkit-scrollbar { width: 3px; }
+        .activity-feed::-webkit-scrollbar-thumb { background: var(--violet); }
+        .activity-item {
+            display: flex;
+            gap: 6px;
+            padding: 2px 0;
+            border-bottom: 1px dashed rgba(179, 107, 255, 0.15);
+        }
+        .activity-item .act-time {
+            color: var(--violet);
+            font-family: var(--font-hud);
+            flex-shrink: 0;
+        }
+        .activity-item .act-text {
+            opacity: 0.85;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .activity-item:first-child .act-text { color: var(--violet); opacity: 1; }
+
     </style>
 </head>
 
@@ -646,8 +753,14 @@
                     <div class="ring ring-2"></div>
                     <div class="ring ring-3"></div>
                     <div class="core-inner">CORE</div>
+                    <svg class="job-ring" id="job-ring" viewBox="0 0 110 110">
+                        <circle class="jr-bg" cx="55" cy="55" r="50"></circle>
+                        <circle class="jr-fg" id="job-ring-fg" cx="55" cy="55" r="50"
+                            stroke-dasharray="314.16" stroke-dashoffset="314.16"></circle>
+                    </svg>
                 </div>
                 <div id="anomaly-tag" class="anomaly-tag">ANOMALY DETECTED</div>
+                <div id="job-label" class="job-label"></div>
                 <div id="status-text"
                     style="position: absolute; bottom: 20px; font-family: var(--font-hud); font-size: 10px; color: var(--cyan); letter-spacing: 2px;">
                     IDLE</div>
@@ -709,6 +822,10 @@
 
             <div class="hud-panel" style="flex-grow: 1; display: flex; flex-direction: column;">
                 <div class="panel-title">Intelligence & Uplink</div>
+                <div class="panel-title" style="margin-top:6px; color: var(--violet); font-size:9px;">AUTONOMY FEED</div>
+                <div class="activity-feed" id="activity-feed">
+                    <div class="activity-item"><span class="act-text" style="opacity:0.5">Aguardando jobs agendados...</span></div>
+                </div>
                 <div id="news-title" style="font-size:10px; line-height:1.4; opacity: 0.8; flex-grow: 1;">Scanning
                     global datastreams...</div>
 
@@ -912,11 +1029,57 @@
                         wv.style.opacity = '0.5';
                         coreInner.style.boxShadow = '0 0 40px var(--cyan)';
                         coreInner.style.background = 'var(--cyan)';
+                    } else if (data.status === 'working' || data.job) {
+                        st.innerText = 'AUTONOMOUS';
+                        wv.style.opacity = '0';
+                        coreInner.style.boxShadow = '0 0 45px var(--violet)';
+                        coreInner.style.background = 'var(--violet)';
+                    } else if (data.status === 'thinking') {
+                        st.innerText = 'THINKING';
+                        wv.style.opacity = '0';
+                        coreInner.style.boxShadow = '0 0 45px var(--amber)';
+                        coreInner.style.background = 'var(--amber)';
                     } else {
                         st.innerText = 'IDLE';
                         wv.style.opacity = '0';
                         coreInner.style.boxShadow = '0 0 30px var(--cyan)';
                         coreInner.style.background = 'var(--cyan)';
+                    }
+
+                    // --- Cores semânticas no body (borda/glow/acento reativos) ---
+                    document.body.classList.toggle('st-working',
+                        data.status === 'working' || !!data.job);
+                    document.body.classList.toggle('st-thinking',
+                        data.status === 'thinking' && !data.job);
+                    document.body.classList.toggle('st-error',
+                        !!(data.unread_errors && data.unread_errors > 0));
+
+                    // --- Anel de progresso do job autônomo ---
+                    const ring = document.getElementById('job-ring');
+                    const ringFg = document.getElementById('job-ring-fg');
+                    const jobLabel = document.getElementById('job-label');
+                    if (data.job && data.job.total > 0) {
+                        const pct = Math.min(1, data.job.current / data.job.total);
+                        ringFg.style.strokeDashoffset = String(314.16 * (1 - pct));
+                        ring.classList.add('active');
+                        jobLabel.classList.add('active');
+                        jobLabel.innerText =
+                            `JOB ${data.job.current}/${data.job.total} — ${data.job.label || ''}`;
+                    } else {
+                        ring.classList.remove('active');
+                        jobLabel.classList.remove('active');
+                    }
+
+                    // --- Feed de atividade autônoma ---
+                    if (data.activity && data.activity.length > 0) {
+                        const feed = document.getElementById('activity-feed');
+                        const sig = JSON.stringify(data.activity).slice(0, 120);
+                        if (feed.dataset.sig !== sig) {
+                            feed.dataset.sig = sig;
+                            feed.innerHTML = data.activity.map(ev =>
+                                `<div class="activity-item"><span class="act-time">${ev.time}</span><span class="act-text" title="${ev.text.replace(/"/g, '&quot;')}">${ev.text}</span></div>`
+                            ).join('');
+                        }
                     }
 
                     if (data.text && data.status === 'speaking') addChatMessage('ai', data.text);

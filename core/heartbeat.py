@@ -156,6 +156,50 @@ EXECUTORS = {
 _EXEC_STATE = {"get_context": None}
 
 # ---------------------------------------------------------------------------
+# Ponte com a HUD (widget.html) — feed de atividade + progresso de job
+# ---------------------------------------------------------------------------
+
+_WIDGET_DATA_FILE = os.path.join(BASE_DIR, "widget_data.json")
+
+def push_activity(text):
+    """Registra um evento no feed de atividade autônoma (lido pela HUD)."""
+    import json as _json
+    data = {}
+    try:
+        if os.path.exists(_WIDGET_DATA_FILE):
+            with open(_WIDGET_DATA_FILE, "r", encoding="utf-8") as f:
+                data = _json.load(f)
+    except Exception:
+        data = {}
+    feed = data.get("activity", [])
+    feed.insert(0, {
+        "time": datetime.datetime.now().strftime("%H:%M"),
+        "text": str(text)[:120],
+    })
+    data["activity"] = feed[:8]
+    try:
+        with open(_WIDGET_DATA_FILE, "w", encoding="utf-8") as f:
+            _json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"[Heartbeat] Erro ao publicar atividade: {e}")
+
+def set_job_progress(current, total, label=""):
+    """Publica o progresso do job corrente no status.json (anel da HUD)."""
+    try:
+        from core.status import set_status as _set
+        _set("working", label or "Executando job...",
+             job={"current": current, "total": total, "label": str(label)[:80]})
+    except Exception as e:
+        print(f"[Heartbeat] Erro ao publicar progresso: {e}")
+
+def clear_job_progress(summary=""):
+    try:
+        from core.status import set_status as _set
+        _set("idle", "", job=None)
+    except Exception:
+        pass
+
+# ---------------------------------------------------------------------------
 # Ciclo principal
 # ---------------------------------------------------------------------------
 
@@ -183,6 +227,7 @@ def beat(say, context=None):
 
         _mark_task(task_id, "done", result)
         _log_event("task_done", f"{ttype}: {result}")
+        push_activity(f"{ttype.upper()} -> {result} ({str(task.get('message', ''))[:40]})")
         executed += 1
 
     return executed

@@ -121,6 +121,7 @@ class Bridge(QObject):
                         final_data["weather"] = widget_data.get("weather")
                         final_data["cotacao"] = widget_data.get("cotacao")
                         final_data["news_ia"] = widget_data.get("news_ia")
+                        final_data["activity"] = widget_data.get("activity", [])
                     except Exception as je:
                         print(f"[QtAPI] Erro ao ler widget_data.json: {je}")
 
