@@ -25,6 +25,9 @@ chromadb>=0.4.22
 sentence-transformers>=2.3.1
 mcp>=1.2.0
 
+# Calidad (prompt 08 adaptado) — linter de los quality gates
+ruff>=0.12.7
+
 # Interface (Launchers)
 # launcher_qt.py (run_laura_qt.bat — principal) e main_launcher.py (run_laura.bat — legado)
 PySide6>=6.6.0

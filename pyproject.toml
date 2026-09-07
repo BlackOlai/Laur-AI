@@ -1,0 +1,27 @@
+# Laura A.I — Quality Gates (prompt 08 do vibe-coding-toolkit, adaptado p/ Python)
+# Princípio: gates nascem com severidade a partir da medição — regra sem
+# violação nasce em "error"; regra com violações nasce em "warn" + baseline.
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+exclude = [
+    ".venv", ".venv311", ".venv_tts", ".venv_voice", "venv",
+    ".chroma_db", ".claude", "__pycache__", "weights", "tmp",
+    "conteudos_criados", "sites_criados", "videos_criados",
+    "assets_baixados", "frontend", "config", "scratch",
+]
+
+[tool.ruff.lint]
+select = [
+    "E4",   # pycodestyle: imports/indentação quebrada
+    "E7",   # pycodestyle: comparações/atribuições problemáticas
+    "E9",   # pycodestyle: erros de sintaxe/runtime
+    "F",    # Pyflakes: variáveis não usadas, nomes indefinidos
+    "T20",  # flake8-print: print() direto (Laura fala via TTS/HUD)
+    "PLR0915", # pylint: funções com excesso de statements (proxy de tamanho)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Skills legadas: severidade "warn" implícita até o burndown (prompt 02)
+"skills/*" = ["T20"]
+"test_*.py" = ["T20", "F401"]
