@@ -757,6 +757,34 @@
         }
         .md-li { margin: 1px 0 1px 8px; }
 
+        /* ============================================
+           PACOTE 3 — GRID VIVO + SPARKLINES
+           ============================================ */
+
+        /* Grade de fundo em deriva lenta (a HUD "respira" mesmo idle) */
+        @keyframes grid-drift {
+            0%   { background-position: 0 0, 0 0; }
+            100% { background-position: 40px 40px, 40px 40px; }
+        }
+        .hud-container::before {
+            animation: grid-drift 30s linear infinite;
+        }
+        body.st-working .hud-container::before {
+            animation-duration: 8s;   /* grade acelera quando a fábrica roda */
+        }
+
+        /* Sparklines de sistema */
+        .spark-line {
+            width: 100%;
+            height: 16px;
+            display: block;
+            margin-top: 2px;
+            opacity: 0.9;
+        }
+        .stat-item { position: relative; }
+        .stat-value { display: flex; justify-content: space-between; font-size: 10px; }
+
+
     </style>
 </head>
 
@@ -809,18 +837,21 @@
                         <div class="stat-bar-bg">
                             <div id="cpu-bar" class="stat-bar-fill"></div>
                         </div>
+                        <canvas id="spark-cpu" class="spark-line" width="140" height="16"></canvas>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value"><span>RAM</span> <span id="ram-val">0%</span></div>
                         <div class="stat-bar-bg">
                             <div id="ram-bar" class="stat-bar-fill"></div>
                         </div>
+                        <canvas id="spark-ram" class="spark-line" width="140" height="16"></canvas>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value"><span>DISK</span> <span id="disk-val">0%</span></div>
                         <div class="stat-bar-bg">
                             <div id="disk-bar" class="stat-bar-fill"></div>
                         </div>
+                        <canvas id="spark-disk" class="spark-line" width="140" height="16"></canvas>
                     </div>
                 </div>
             </aside>
@@ -1002,6 +1033,44 @@
         }
 
         // Backend Polling
+        // --- Pacote 3: buffers + desenho das sparklines de sistema ---
+        const cpuHist = [], ramHist = [], diskHist = [];
+        const SPARK_MAX = 60; // 60 amostras = ~1 minuto de histórico
+
+        function pushSample(arr, value) {
+            arr.push(parseFloat(value) || 0);
+            if (arr.length > SPARK_MAX) arr.shift();
+        }
+
+        function drawSpark(canvasId, arr) {
+            const cv = document.getElementById(canvasId);
+            if (!cv || arr.length < 2) return;
+            const ctx = cv.getContext('2d');
+            const w = cv.width, h = cv.height;
+            ctx.clearRect(0, 0, w, h);
+            const accent = getComputedStyle(document.body)
+                .getPropertyValue('--accent').trim() || '#53ABF3';
+            // Linha do histórico
+            ctx.beginPath();
+            for (let i = 0; i < arr.length; i++) {
+                const x = (i / (SPARK_MAX - 1)) * w;
+                const y = h - (arr[i] / 100) * (h - 2) - 1;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 1.2;
+            ctx.shadowColor = accent;
+            ctx.shadowBlur = 3;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            // Área preenchida sutil
+            ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+            ctx.globalAlpha = 0.12;
+            ctx.fillStyle = accent;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+
         function poll() {
             if (window.pywebview && window.pywebview.api) {
                 window.pywebview.api.get_status().then(data => {
@@ -1018,6 +1087,13 @@
                         document.getElementById('ram-bar').style.width = data.system.ram + '%';
                         document.getElementById('disk-val').innerText = data.system.disk + '%';
                         document.getElementById('disk-bar').style.width = data.system.disk + '%';
+                        // Pacote 3: histórico de amostras para as sparklines
+                        pushSample(cpuHist, data.system.cpu);
+                        pushSample(ramHist, data.system.ram);
+                        pushSample(diskHist, data.system.disk);
+                        drawSpark('spark-cpu', cpuHist);
+                        drawSpark('spark-ram', ramHist);
+                        drawSpark('spark-disk', diskHist);
                     }
 
                     if (data.weather) {
