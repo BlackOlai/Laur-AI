@@ -3,6 +3,11 @@ import importlib.util
 import sys
 import unicodedata
 
+# Keywords menores que isso são consideradas "fracas": se casarem, o
+# orquestrador (main_loop) tenta primeiro o router semântico antes de
+# executa-las — evita que palavras soltas sequestrem conversa natural.
+WEAK_KEYWORD_MIN_LEN = int(os.getenv("LAURA_WEAK_KEYWORD_LEN", "6"))
+
 class SkillManager:
     def __init__(self, skills_dir="skills"):
         self.skills_dir = os.path.abspath(skills_dir)
@@ -66,6 +71,14 @@ class SkillManager:
             best_match = all_matches[0]
             skill = best_match[1]
             keyword = best_match[2]
+            
+            # Keyword fraca (curta) + contexto disponível: adia a execução e
+            # deixa o main_loop tentar o router semântico primeiro. Se o
+            # router não souber o que fazer, main_loop executa esta skill.
+            if len(keyword) < WEAK_KEYWORD_MIN_LEN and context is not None:
+                context["weak_skill_match"] = skill
+                print(f"[SkillManager] Match fraco ('{keyword}') adiado para o router semântico.")
+                return False
             
             try:
                 print(f"[SkillManager] Melhor correspondência: '{keyword}' -> Ativando '{skill.__name__}'")

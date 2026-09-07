@@ -52,8 +52,13 @@ except Exception as e:
 # --- MEMÓRIA DE SESSÃO (padrão Qwen-Agent) ---
 # Histórico multi-turno da sessão atual. Mantemos no máximo MAX_HISTORY pares
 # de mensagens para não estourar o contexto do modelo.
-MAX_HISTORY_MESSAGES = 20  # 10 turnos (user + assistant cada)
+# Configurável via .env (LAURA_MAX_HISTORY, padrão 40 = 20 turnos)
+MAX_HISTORY_MESSAGES = int(os.getenv("LAURA_MAX_HISTORY", "40"))
 conversation_history = []
+
+# Janela do modo contínuo: segundos após uma interação em que você pode
+# continuar falando sem dizer "Laura" (configurável via .env)
+CONTINUOUS_WINDOW = float(os.getenv("LAURA_CONTINUOUS_WINDOW", "30"))
 
 def log_system_error(origin, error):
     log_file = os.path.join(BASE_DIR, "error_logs.json")
@@ -212,8 +217,8 @@ def main_loop():
 
     while True:
         try:
-            # Controle de modo contínuo (janela de 7s para não precisar repetir o nome)
-            if continuous_mode and (time.time() - last_interaction_time < 7):
+            # Controle de modo contínuo (janela configurável via LAURA_CONTINUOUS_WINDOW)
+            if continuous_mode and (time.time() - last_interaction_time < CONTINUOUS_WINDOW):
                 raw_query, source = takeCommand(timeout=3, return_source=True)
                 if not raw_query or raw_query == "none":
                     continuous_mode = False
@@ -295,16 +300,42 @@ def main_loop():
                 except Exception as e:
                     print(f"[REFORÇO] Falha ao forçar link_analyzer: {e}")
 
-            # 2. Roteador Estratégico (IA decide a Skill)
+            # 2. Roteador Estratégico (IA decide a Skill) — também recebe
+            #    matches fracos de keyword adiados pelo SkillManager.
             from skills.skill_router import execute as route_intent
-            if route_intent(query, say, takeCommand, context):
+            routed = route_intent(query, say, takeCommand, context)
+            if routed:
                 continuous_mode = True
                 last_interaction_time = time.time()
             else:
-                # 3. Chat de Inteligência Geral
-                chat(query)
-                continuous_mode = True
-                last_interaction_time = time.time()
+                # 2.5. Fallback: keyword fraca que o SkillManager adiou
+                weak_skill = context.pop("weak_skill_match", None) if context else None
+                if weak_skill is not None:
+                    try:
+                        print(f"[MainLoop] Router não resolveu — executando skill adiada: {weak_skill.__name__}")
+                        res = weak_skill.execute(query, say, takeCommand, context)
+                        if res is not False:
+                            try:
+                                from core.skill_protocol import normalize
+                                context["last_skill_result"] = normalize(res, weak_skill.__name__)
+                            except Exception:
+                                pass
+                            continuous_mode = True
+                            last_interaction_time = time.time()
+                        else:
+                            chat(query)
+                            continuous_mode = True
+                            last_interaction_time = time.time()
+                    except Exception as e:
+                        log_system_error("Weak Skill Fallback", e)
+                        chat(query)
+                        continuous_mode = True
+                        last_interaction_time = time.time()
+                else:
+                    # 3. Chat de Inteligência Geral
+                    chat(query)
+                    continuous_mode = True
+                    last_interaction_time = time.time()
 
         except Exception as e:
             log_system_error("Main Loop", e)
