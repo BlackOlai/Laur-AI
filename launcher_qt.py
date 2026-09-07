@@ -125,6 +125,16 @@ class Bridge(QObject):
                     except Exception as je:
                         print(f"[QtAPI] Erro ao ler widget_data.json: {je}")
 
+            # 2.5 Histórico do chat (para restaurar o painel de conversa)
+            try:
+                history_path = os.path.join(BASE_DIR, "chat_history.json")
+                if os.path.exists(history_path):
+                    with open(history_path, "r", encoding="utf-8") as hf:
+                        h = json.load(hf)
+                        final_data["chat_history"] = h[-20:]  # últimos 10 turnos
+            except Exception as je:
+                print(f"[QtAPI] Erro ao ler chat_history.json: {je}")
+
             # 3. Adiciona Métricas de Sistema (FORMATO CORRETO: final_data["system"])
             final_data["system"] = {
                 "cpu": psutil.cpu_percent(),

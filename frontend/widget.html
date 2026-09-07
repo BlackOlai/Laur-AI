@@ -729,6 +729,34 @@
         }
         .activity-item:first-child .act-text { color: var(--violet); opacity: 1; }
 
+        /* Markdown no chat */
+        .msg b { color: var(--accent); }
+        .md-h {
+            font-family: var(--font-hud);
+            color: var(--accent);
+            font-size: 11px;
+            letter-spacing: 1px;
+            margin: 6px 0 2px 0;
+        }
+        .md-code {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-left: 3px solid var(--accent);
+            padding: 6px 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 10px;
+            overflow-x: auto;
+            margin: 4px 0;
+            white-space: pre-wrap;
+        }
+        .md-inline {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 11px;
+        }
+        .md-li { margin: 1px 0 1px 8px; }
+
     </style>
 </head>
 
@@ -1083,6 +1111,10 @@
                     }
 
                     if (data.text && data.status === 'speaking') addChatMessage('ai', data.text);
+
+                    // Pacote 2: histórico persistente + auto-expansão
+                    if (data.chat_history) loadChatHistory(data.chat_history);
+                    maybeAutoExpand(data);
                 });
             }
         }
@@ -1090,12 +1122,66 @@
 
         function addChatMessage(type, text) {
             const h = document.getElementById('chat-history');
-            if (h.lastChild && h.lastChild.innerText === text) return;
+            if (h.lastChild && h.lastChild.dataset.raw === text) return;
             const d = document.createElement('div');
             d.className = `msg msg-${type}`;
-            d.innerText = text;
+            d.dataset.raw = text;
+            d.innerHTML = type === 'ai' ? renderMD(text) : renderMD(text);
             h.appendChild(d);
             h.scrollTop = h.scrollHeight;
+        }
+
+        // --- Mini-renderizador de Markdown (seguro: escapa HTML antes) ---
+        function escapeHtml(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+        function renderMD(md) {
+            if (!md) return '';
+            let html = escapeHtml(String(md));
+            // Blocos de código ``` ... ```
+            html = html.replace(/```([\s\S]*?)```/g, (m, code) =>
+                `<pre class="md-code">${code.trim()}</pre>`);
+            // Codigo inline
+            html = html.replace(/`([^`\n]+)`/g, '<code class="md-inline">$1</code>');
+            // Negrito e itálico
+            html = html.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+            html = html.replace(/\*([^*\n]+)\*/g, '<i>$1</i>');
+            // Títulos ## / ###
+            html = html.replace(/^### (.*)$/gm, '<div class="md-h">$1</div>');
+            html = html.replace(/^## (.*)$/gm, '<div class="md-h">$1</div>');
+            // Listas: - item ou * item ou 1. item
+            html = html.replace(/^(\s*)[-*•] (.*)$/gm, '$1<div class="md-li">• $2</div>');
+            html = html.replace(/^(\s*)(\d+)\. (.*)$/gm, '$1<div class="md-li"><b>$2.</b> $3</div>');
+            return html.replace(/\n/g, '<br>');
+        }
+
+        // --- Restauração do histórico (lê chat_history.json via get_status) ---
+        let historyLoaded = false;
+        function loadChatHistory(items) {
+            if (historyLoaded || !items || items.length === 0) return;
+            historyLoaded = true;
+            const h = document.getElementById('chat-history');
+            h.innerHTML = '';
+            items.forEach(m => {
+                const d = document.createElement('div');
+                d.className = `msg msg-${m.role === 'user' ? 'user' : 'ai'}`;
+                d.dataset.raw = m.content;
+                d.innerHTML = renderMD(m.content);
+                h.appendChild(d);
+            });
+            h.scrollTop = h.scrollHeight;
+        }
+
+        // --- Auto-expansão do chat em falas importantes ---
+        let wasSpeaking = false;
+        function maybeAutoExpand(data) {
+            const speaking = data.status === 'speaking' && !!data.text;
+            if (speaking && !wasSpeaking && currentMode !== 'chat') {
+                if (data.text.length > 140 || currentMode === 'minimized') {
+                    toggleChat();  // abre o COMMS LINK para o usuário ler
+                }
+            }
+            wasSpeaking = speaking;
         }
 
         function sendMsg() {

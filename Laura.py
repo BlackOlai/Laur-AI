@@ -60,6 +60,32 @@ conversation_history = []
 # continuar falando sem dizer "Laura" (configurável via .env)
 CONTINUOUS_WINDOW = float(os.getenv("LAURA_CONTINUOUS_WINDOW", "30"))
 
+def _persist_chat_history(user_text, ai_text):
+    """Grava o turno atual em chat_history.json (últimos 60 turnos).
+    A HUD lê este arquivo para restaurar o chat ao reabrir."""
+    try:
+        path = os.path.join(BASE_DIR, "chat_history.json")
+        history = []
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    history = json.load(f)
+            except Exception:
+                history = []
+        history.append({
+            "role": "user", "content": str(user_text)[:500],
+            "ts": datetime.datetime.now().strftime("%H:%M"),
+        })
+        history.append({
+            "role": "ai", "content": str(ai_text)[:1500],
+            "ts": datetime.datetime.now().strftime("%H:%M"),
+        })
+        history = history[-120:]  # 60 turnos
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(history, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"[ChatHistory] Erro ao persistir: {e}")
+
 def log_system_error(origin, error):
     log_file = os.path.join(BASE_DIR, "error_logs.json")
     logs = []
@@ -160,9 +186,11 @@ def chat(query):
         conversation_history.append({"role": "user", "content": query})
         conversation_history.append({"role": "assistant", "content": res})
 
-        # Limpa histórico antigo para não estourar contexto do modelo
         if len(conversation_history) > MAX_HISTORY_MESSAGES:
             conversation_history = conversation_history[-MAX_HISTORY_MESSAGES:]
+
+        # Persistência do histórico para a HUD (chat do widget abre com memória)
+        _persist_chat_history(query, res)
 
         # Salva o diálogo atual na memória de longo prazo (invisível pro usuário)
         if memory_manager:
