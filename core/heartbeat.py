@@ -196,8 +196,8 @@ def clear_job_progress(summary=""):
     try:
         from core.status import set_status as _set
         _set("idle", "", job=None)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[Heartbeat] Erro ao limpar progresso do job: {e}")
 
 # ---------------------------------------------------------------------------
 # Ciclo principal

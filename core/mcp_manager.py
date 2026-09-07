@@ -38,7 +38,8 @@ class MCPManager:
             try:
                 config = json.load(f)
                 servers = config.get("mcpServers", {})
-            except Exception:
+            except Exception as e:
+                print(f"[MCPManager] Erro ao parsear mcp_servers.json: {e}")
                 servers = {}
 
         for name, conf in servers.items():

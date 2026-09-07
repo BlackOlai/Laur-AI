@@ -51,7 +51,7 @@ Retorne APENAS o JSON aprimorado."""
         
         try:
             return json.loads(cleaned)
-        except:
+        except Exception:
             match = re.search(r'(\{.*\})', cleaned, re.DOTALL)
             if match:
                 return json.loads(match.group(1))

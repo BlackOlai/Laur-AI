@@ -26,8 +26,8 @@ def set_status(status, text=""):
     try:
         from core.status import set_status as update_status
         update_status(status, text)
-    except:
-        pass
+    except Exception as e:
+        print(f"[TTS] Nao foi possivel atualizar status: {e}")
 
 def get_current_voice():
     default_voice = "pt-BR-ThalitaMultilingualNeural"
@@ -37,7 +37,8 @@ def get_current_voice():
                 profile = json.load(f)
                 v = profile.get("voice", default_voice)
                 return v
-        except: pass
+        except Exception as e:
+            print(f"[TTS] Erro ao ler profile.json: {e}")
     return default_voice
 
 # ---------------------------------------------------------------------------
@@ -112,11 +113,13 @@ async def _speak_process(text):
             import win32com.client
             speaker = win32com.client.Dispatch("SAPI.SpVoice")
             speaker.Speak(text)
-        except: pass
+        except Exception as e:
+            print(f"[TTS] SAPI5 fallback falhou: {e}")
     finally:
         if os.path.exists(temp_file):
             try: os.remove(temp_file)
-            except: pass
+            except Exception as e:
+                print(f"[TTS] Erro ao remover temp_speech: {e}")
 
 # ---------------------------------------------------------------------------
 # Lock global para impedir falas sobrepostas
@@ -132,7 +135,8 @@ def say(text):
     try:
         from core.status import set_last_spoken
         set_last_spoken(clean_text)
-    except: pass
+    except Exception as e:
+        print(f"[TTS] Erro ao registrar ultima fala: {e}")
 
     set_status("speaking", clean_text)
     print(f"Laura: {clean_text}")

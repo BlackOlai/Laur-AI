@@ -91,8 +91,8 @@ class SkillManager:
                         from core.skill_protocol import normalize
                         if context is not None:
                             context["last_skill_result"] = normalize(result, skill.__name__)
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        print(f"[SkillManager] Erro ao normalizar resultado de {skill.__name__}: {e}")
                     return True
             except Exception as e:
                 print(f"Erro ao executar skill {skill.__name__}: {e}")
