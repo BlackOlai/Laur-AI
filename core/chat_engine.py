@@ -45,6 +45,16 @@ def chat(query, deps, conversation_history, MAX_HISTORY_MESSAGES):
             "Tienes memoria de esta conversación — úsala para mantener contexto y coherencia."
         )
 
+        # Constituição (Fase 4): leis imutáveis guiam as sugestões da Laura
+        try:
+            from core.constitution import get_rules_summary
+            system_content += "\n\n" + get_rules_summary() + (
+                "\nSe Olair pedir algo que viole uma lei, explique a lei e "
+                "ofereça a alternativa segura (ex.: sugerir campanha sem publicar)."
+            )
+        except Exception as e:
+            print(f"[ChatEngine] Constituição indisponível: {e}")
+
         if memories:
             system_content += f"\n\n{memories}\nUsa estas memorias pasadas si son útiles para responder."
 

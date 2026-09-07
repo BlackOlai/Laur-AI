@@ -33,6 +33,9 @@ def execute(query, say, takeCommand, context=None):
     skill_manager = context.get("skill_manager") if context else None
     query_lower = query.lower()
 
+    # Constituição (Fase 4) — disponível para planejamento e execução
+    from core.constitution import filter_plan, get_rules_summary
+
     # --- MODO AGENTE AUTÔNOMO (ORQUESTRAÇÃO REAL) ---
     say("Modo Agente Autônomo ativado. Analisando objetivos e planejando execução...")
 
@@ -51,6 +54,9 @@ def execute(query, say, takeCommand, context=None):
     
     Habilidades disponíveis na Laura:
     {skills_list}
+    
+    REGRAS QUE O PLANO DEVE RESPEITAR (Constituição):
+    {get_rules_summary()}
     
     Sua missão:
     1. Crie um plano de 3 a 5 etapas para resolver isso de forma autônoma.
@@ -80,6 +86,19 @@ def execute(query, say, takeCommand, context=None):
             plan_json = json.loads(json_match.group())
         else:
             raise Exception("Formato JSON não encontrado na resposta da IA.")
+
+        # --- CONSTITUIÇÃO (Fase 4): filtra etapas que violam as leis ---
+        etapas_ok, bloqueios = filter_plan(plan_json['etapas'])
+        if bloqueios:
+            for b in bloqueios:
+                say(f"Passo {b['passo']} bloqueado pela Constituição: {b['motivo'][:120]}")
+            from core.heartbeat import push_activity
+            push_activity(f"Constituição bloqueou {len(bloqueios)} etapa(s): "
+                          + "; ".join(b['skill'] for b in bloqueios))
+        plan_json['etapas'] = etapas_ok
+        if not etapas_ok:
+            say("Nenhuma etapa do plano pode ser executada dentro das leis, senhor.")
+            return True
 
         
         say(f"Senhor, planejei {len(plan_json['etapas'])} etapas para concluir: {plan_json['objetivo']}")
