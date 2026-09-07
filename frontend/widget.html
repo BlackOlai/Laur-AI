@@ -909,6 +909,7 @@
             <div class="chat-input-area">
                 <input type="text" id="chat-input" placeholder="Digite seu comando..."
                     onkeydown="if(event.key==='Enter') sendMsg()">
+                <button class="hud-btn" onclick="micBtn()" title="Pressione e fale: ativa a janela de voz">🎤</button>
                 <button class="hud-btn" onclick="openFileDialog()" title="Anexar Arquivo">📎</button>
                 <button class="hud-btn" onclick="sendMsg()">SEND</button>
             </div>
@@ -975,6 +976,7 @@
         initializeWindow();
 
         function handleHudClick(e) {
+            if (window.__dragged) return;  // Pacote 4: foi drag, não clique
             if (currentMode === 'minimized') {
                 setMinimized(false);
             }
@@ -1289,6 +1291,46 @@
                 });
             }
         }
+
+        // --- Pacote 4: botão 🎤 — abre a janela de voz sem digitar "Laura" ---
+        function micBtn() {
+            addChatMessage('user', '🎤 (ativação de voz)');
+            if (window.pywebview && window.pywebview.api) {
+                window.pywebview.api.send_message('__MIC_TRIGGER__');
+            }
+        }
+
+        // --- Pacote 4: clique vs. drag na bolinha (threshold de 5px) ---
+        // Arrastar a bolinha NÃO expande mais a HUD por engano.
+        (function () {
+            let downX = 0, downY = 0, tracking = false;
+            const hud = document.getElementById('hud-container');
+            hud.addEventListener('mousedown', function (e) {
+                if (currentMode === 'minimized' && e.target.tagName !== 'BUTTON') {
+                    tracking = true;
+                    downX = e.screenX; downY = e.screenY;
+                }
+            });
+            document.addEventListener('mousemove', function (e) {
+                if (!tracking || currentMode !== 'minimized') return;
+                const dx = e.screenX - downX, dy = e.screenY - downY;
+                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+                    window.__dragged = true;  // movimento real = drag, não clique
+                    if (window.pywebview && window.pywebview.api) {
+                        window.pywebview.api.move_window(dx, dy);
+                    }
+                    downX = e.screenX; downY = e.screenY;
+                }
+            });
+            document.addEventListener('mouseup', function () {
+                if (tracking) {
+                    tracking = false;
+                    // Libera a flag depois do evento click passar
+                    setTimeout(() => { window.__dragged = false; }, 80);
+                }
+            });
+        })();
+
     </script>
 </body>
 

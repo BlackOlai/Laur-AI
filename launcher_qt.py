@@ -3,6 +3,9 @@ import os
 import json
 import threading
 import time
+import ctypes
+import ctypes.wintypes
+import win32con
 import psutil
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -174,8 +177,12 @@ class Bridge(QObject):
             print(f"[QtAPI] Erro ao mudar modo: {e}")
 
 class LauraWidget(QMainWindow):
+    # Pacote 4: sinal para a hotkey global (thread-safe via fila do Qt)
+    toggle_visibility = Signal()
+
     def __init__(self):
         super().__init__()
+        self.toggle_visibility.connect(self._toggle_visibility)
         
         # 1. Configurações da Janela (Elite)
         self.setWindowFlags(
@@ -265,6 +272,40 @@ class LauraWidget(QMainWindow):
         # Move para a ESQUERDA (50 pixels de margem)
         self.move(50, (screen.height() - size.height()) // 2)
 
+    def _toggle_visibility(self):
+        """Pacote 4: mostra/oculta a HUD (chamado pela hotkey Ctrl+Alt+L)."""
+        try:
+            if self.isVisible() and not self.isMinimized():
+                self.hide()
+                print("[Hotkey] HUD ocultada (Ctrl+Alt+L).")
+            else:
+                self.showNormal()
+                self.raise_()
+                self.activateWindow()
+                print("[Hotkey] HUD exibida (Ctrl+Alt+L).")
+        except Exception as e:
+            print(f"[Hotkey] Erro ao alternar visibilidade: {e}")
+
+def _global_hotkey_loop(widget):
+    """Pacote 4: Ctrl+Alt+L global do Windows — mostra/oculta a HUD.
+    Roda em thread própria com RegisterHotKey (win32) e emite um Signal
+    Qt (thread-safe) para manipular a janela na main thread."""
+    try:
+        user32 = ctypes.windll.user32
+        HOTKEY_ID = 0xB00B
+        MOD_CONTROL, MOD_ALT = 0x0002, 0x0001
+        if not user32.RegisterHotKey(None, HOTKEY_ID, MOD_CONTROL | MOD_ALT, ord('L')):
+            print("[Hotkey] Ctrl+Alt+L indisponível (registrado por outro app).")
+            return
+        print("[Hotkey] Ctrl+Alt+L global ativo — mostra/oculta a HUD.")
+        msg = ctypes.wintypes.MSG()
+        while user32.GetMessageW(ctypes.byref(msg), None, 0, 0) != 0:
+            if msg.message == win32con.WM_HOTKEY and msg.wParam == HOTKEY_ID:
+                widget.toggle_visibility.emit()
+        user32.UnregisterHotKey(None, HOTKEY_ID)
+    except Exception as e:
+        print(f"[Hotkey] Loop encerrado: {e}")
+
 def run_qt_launcher():
     app = QApplication(sys.argv)
     
@@ -278,7 +319,10 @@ def run_qt_launcher():
     
     widget = LauraWidget()
     widget.show()
-    
+
+    # Pacote 4: hotkey global Ctrl+Alt+L (thread daemon)
+    threading.Thread(target=_global_hotkey_loop, args=(widget,), daemon=True).start()
+
     sys.exit(app.exec())
 
 if __name__ == "__main__":

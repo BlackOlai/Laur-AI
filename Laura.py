@@ -286,6 +286,13 @@ def main_loop():
 
             if not query or query == "none": continue
 
+            # Pacote 4: gatilho do botão 🎤 do chat — abre a janela de voz
+            if query.strip() == "__MIC_TRIGGER__":
+                say("Estou ouvindo, senhor.")
+                continuous_mode = True
+                last_interaction_time = time.time()
+                continue
+
             # Interrupções e controle de memória
             if any(cmd in query for cmd in ["parar", "silêncio", "pare", "cancelar"]):
                 say("Certo.")
