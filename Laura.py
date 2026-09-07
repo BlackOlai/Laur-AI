@@ -1,13 +1,21 @@
+"""Laura \u2014 n\u00facleo de la asistente (refactor prompt 09).
+
+Este m\u00f3dulo es el orquestador: configura el motor de IA, instancia los
+managers y mantiene el bucle principal (voz/chat). Las responsabilidades
+extra\u00edbles viven en core/ (chat_engine, background, system_log,
+chat_persistence).
+
+Interfaz p\u00fablica preservada: main_loop, validate_config, chat,
+background_tasks, log_system_error \u2014 los launchers importan igual.
+"""
 import os
 import time
 import datetime
-import json
 import threading
 import random
 from dotenv import load_dotenv
 from openai import OpenAI
 
-# Imports do Core System (Modular)
 from core.stt import takeCommand
 from core.tts import say
 from core.status import set_status
@@ -16,17 +24,22 @@ from core.config_manager import validate_config
 from core.memory_manager import MemoryManager
 from core.mcp_manager import MCPManager
 
-# Carregar configurações
+# M\u00f3dulos extra\u00eddos en el refactor \u2014 se re-exportan para preservar la interfaz.
+from core.system_log import log_system_error  # noqa: F401
+from core.chat_persistence import persist_chat_history as _persist_chat_history
+from core.chat_engine import chat as _chat_engine
+from core.background import background_tasks as _background_tasks
+
 load_dotenv()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# --- CONFIGURAÇÃO DO MOTOR DE IA (GROQ PRIORIDADE) ---
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
+
 def get_ai_client():
-    """Define o cliente e modelo baseado na prioridade: Groq > NVIDIA > OpenRouter."""
+    """Cliente y modelo seg\u00fan prioridad: Groq > NVIDIA > OpenRouter."""
     if GROQ_API_KEY:
         return OpenAI(base_url="https://api.groq.com/openai/v1", api_key=GROQ_API_KEY), "llama-3.3-70b-versatile"
     elif NVIDIA_API_KEY:
@@ -34,13 +47,14 @@ def get_ai_client():
     else:
         return OpenAI(base_url="https://openrouter.ai/api/v1", api_key=OPENROUTER_API_KEY), "google/gemini-2.0-pro-exp-02-05:free"
 
+
 client, model_to_use = get_ai_client()
 skill_manager = SkillManager()
 
 try:
     memory_manager = MemoryManager()
 except Exception as e:
-    print(f"[Warning] Falha ao inicializar o banco de memórias: {e}")
+    print(f"[Warning] Falha ao inicializar o banco de mem\u00f3rias: {e}")
     memory_manager = None
 
 try:
@@ -49,212 +63,76 @@ except Exception as e:
     print(f"[Warning] Falha ao inicializar o MCP Manager: {e}")
     mcp_manager = None
 
-# --- MEMÓRIA DE SESSÃO (padrão Qwen-Agent) ---
-# Histórico multi-turno da sessão atual. Mantemos no máximo MAX_HISTORY pares
-# de mensagens para não estourar o contexto do modelo.
-# Configurável via .env (LAURA_MAX_HISTORY, padrão 40 = 20 turnos)
 MAX_HISTORY_MESSAGES = int(os.getenv("LAURA_MAX_HISTORY", "40"))
 conversation_history = []
-
-# Janela do modo contínuo: segundos após uma interação em que você pode
-# continuar falando sem dizer "Laura" (configurável via .env)
 CONTINUOUS_WINDOW = float(os.getenv("LAURA_CONTINUOUS_WINDOW", "30"))
 
-def _persist_chat_history(user_text, ai_text):
-    """Grava o turno atual em chat_history.json (últimos 60 turnos).
-    A HUD lê este arquivo para restaurar o chat ao reabrir."""
-    try:
-        path = os.path.join(BASE_DIR, "chat_history.json")
-        history = []
-        if os.path.exists(path):
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    history = json.load(f)
-            except Exception:
-                history = []
-        history.append({
-            "role": "user", "content": str(user_text)[:500],
-            "ts": datetime.datetime.now().strftime("%H:%M"),
-        })
-        history.append({
-            "role": "ai", "content": str(ai_text)[:1500],
-            "ts": datetime.datetime.now().strftime("%H:%M"),
-        })
-        history = history[-120:]  # 60 turnos
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(history, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        print(f"[ChatHistory] Erro ao persistir: {e}")
 
-def log_system_error(origin, error):
-    log_file = os.path.join(BASE_DIR, "error_logs.json")
-    logs = []
-    if os.path.exists(log_file):
-        try:
-            with open(log_file, "r", encoding="utf-8") as f:
-                logs = json.load(f)
-        except: logs = []
-    logs.append({
-        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "origin": origin, "message": str(error), "status": "unread"
-    })
-    with open(log_file, "w", encoding="utf-8") as f:
-        json.dump(logs, f, indent=2)
+def _chat_deps():
+    """Dependencias vivas para el motor de chat (core/chat_engine)."""
+    return {
+        "client": client, "model_to_use": model_to_use,
+        "memory_manager": memory_manager, "mcp_manager": mcp_manager,
+        "set_status": set_status, "say": say,
+        "log_system_error": log_system_error,
+        "persist_chat_history": _persist_chat_history,
+    }
+
 
 def chat(query):
-    """Chat de IA geral com memória de sessão multi-turno.
-    
-    Mantém um histórico rolante da conversa (conversation_history) para que
-    a Laura lembre o que foi dito anteriormente na mesma sessão — padrão
-    inspirado no Qwen-Agent.
-    """
-    global conversation_history
-    try:
-        set_status("thinking", "Processando...")
+    """Chat de IA general con memoria de sesi\u00f3n (delega en core/chat_engine)."""
+    _chat_engine(query, _chat_deps(), conversation_history, MAX_HISTORY_MESSAGES)
 
-        # Recuperar memória do passado baseada na query atual
-        memories = ""
-        if memory_manager:
-            results = memory_manager.search_memory(query, k=3)
-            if results:
-                memories = "\n--- MEMÓRIAS RELEVANTES DO PASSADO ---\n"
-                for res in results:
-                    memories += f"- {res['text']}\n"
 
-        system_content = (
-            "Você é a Laura, uma assistente de elite e parceira estratégica do Olair. "
-            "Trate o Olair diretamente, com respeito mas com a proximidade de uma parceira de alto nível. "
-            "Nunca fale de si mesma na terceira pessoa e nunca trate o usuário na terceira pessoa. "
-            "Seja inteligente, direta e proativa. "
-            "Você tem memória desta conversa — use-a para manter contexto e coerência."
-        )
+def background_tasks():
+    """Tareas de segundo plano (delega en core/background)."""
+    _background_tasks(client, model_to_use, say, takeCommand, skill_manager)
 
-        if memories:
-            system_content += f"\n\n{memories}\nUse essas memórias passadas se forem úteis para responder."
-
-        # Monta o payload com histórico de sessão completo
-        messages = [
-            {"role": "system", "content": system_content},
-            *conversation_history,          # ← histórico da sessão atual
-            {"role": "user", "content": query}
-        ]
-
-        # Adicionar ferramentas MCP se disponíveis
-        tools = mcp_manager.get_tools() if mcp_manager else []
-        
-        kwargs = {"model": model_to_use, "messages": messages}
-        if tools:
-            kwargs["tools"] = tools
-
-        response = client.chat.completions.create(**kwargs)
-        message = response.choices[0].message
-
-        # Processar tool calls (se o LLM decidiu usar uma ferramenta MCP)
-        if hasattr(message, "tool_calls") and message.tool_calls:
-            set_status("thinking", "Executando ferramenta MCP...")
-            
-            # Precisamos converter a Message object para dict ou adicioná-la diretamente
-            messages.append(message)
-            
-            for tool_call in message.tool_calls:
-                function_name = tool_call.function.name
-                try:
-                    arguments = json.loads(tool_call.function.arguments)
-                except Exception:
-                    arguments = {}
-                
-                print(f"[MCP] Executando: {function_name} com args {arguments}")
-                tool_result = mcp_manager.call_tool(function_name, arguments)
-                
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call.id,
-                    "name": function_name,
-                    "content": str(tool_result)
-                })
-                
-            # Segunda chamada ao LLM (com o resultado da ferramenta)
-            response = client.chat.completions.create(
-                model=model_to_use,
-                messages=messages
-            )
-            res = response.choices[0].message.content
-        else:
-            res = message.content
-
-        # Atualiza o histórico com a troca atual
-        conversation_history.append({"role": "user", "content": query})
-        conversation_history.append({"role": "assistant", "content": res})
-
-        if len(conversation_history) > MAX_HISTORY_MESSAGES:
-            conversation_history = conversation_history[-MAX_HISTORY_MESSAGES:]
-
-        # Persistência do histórico para a HUD (chat do widget abre com memória)
-        _persist_chat_history(query, res)
-
-        # Salva o diálogo atual na memória de longo prazo (invisível pro usuário)
-        if memory_manager:
-            threading.Thread(
-                target=memory_manager.add_memory, 
-                args=(f"O Olair disse: '{query}'. A Laura respondeu: '{res}'", "chat_auto"),
-                daemon=True
-            ).start()
-
-        say(res)
-
-    except Exception as e:
-        log_system_error("Chat Fallback", e)
-        say("Olair, tive um pequeno problema de conexão com meu cérebro agora.")
 
 def build_laura_context():
-    """Monta o contexto completo para execução autônoma (heartbeat/jobs)."""
+    """Contexto completo para ejecuci\u00f3n aut\u00f3noma (heartbeat/jobs)."""
     return {
         "say": say, "takeCommand": takeCommand, "set_status": set_status,
         "log_system_error": log_system_error, "client": client,
         "model_to_use": model_to_use, "skill_manager": skill_manager,
         "memory_manager": memory_manager,
     }
-
 def main_loop():
-    # Inicia tarefas de background (Clima, Notícias, etc)
     threading.Thread(target=background_tasks, daemon=True).start()
 
-    # Inicia o Heartbeat (executa tarefas e JOBS agendados a cada 30s)
     try:
         from core.heartbeat import start_heartbeat
         start_heartbeat(say, get_context=build_laura_context)
     except Exception as e:
         print(f"[Warning] Falha ao iniciar o heartbeat: {e}")
-    
-    # Saudações dinâmicas
+
     hora = datetime.datetime.now().hour
     saudacoes_bomdia = ["Bom dia, Olair!", "Olá Olair, bom dia! Pronta para ajudar."]
     saudacoes_boatarde = ["Boa tarde, Olair! Como posso ser útil?", "Boa tarde, senhor! Em que trabalhamos agora?"]
     saudacoes_boanoite = ["Boa noite, Olair!", "Boa noite, senhor! No que posso ajudar?"]
-    
-    if 5 <= hora < 12: msg = random.choice(saudacoes_bomdia)
-    elif 12 <= hora < 18: msg = random.choice(saudacoes_boatarde)
-    else: msg = random.choice(saudacoes_boanoite)
-    
-    # Pequeno delay para o sistema de áudio e HUD estabilizarem
+
+    if 5 <= hora < 12:
+        msg = random.choice(saudacoes_bomdia)
+    elif 12 <= hora < 18:
+        msg = random.choice(saudacoes_boatarde)
+    else:
+        msg = random.choice(saudacoes_boanoite)
+
     time.sleep(2)
     say(msg)
-    
+
     continuous_mode = False
     last_interaction_time = 0
 
     while True:
         try:
-            # Controle de modo contínuo (janela configurável via LAURA_CONTINUOUS_WINDOW)
             if continuous_mode and (time.time() - last_interaction_time < CONTINUOUS_WINDOW):
                 raw_query, source = takeCommand(timeout=3, return_source=True)
                 if not raw_query or raw_query == "none":
                     continuous_mode = False
                     set_status("idle", "")
                     continue
-                # No modo contínuo, qualquer mensagem do chat é aceita diretamente
                 if source == "widget" or "http" in raw_query:
-                    print(f"[DEBUG] Contínuo via {source}: {raw_query}")
                     query = raw_query.replace("laura", "").strip()
                 elif "laura" in raw_query:
                     query = raw_query.replace("laura", "").strip()
@@ -263,18 +141,16 @@ def main_loop():
                         raw_query2, _ = takeCommand(timeout=5, return_source=True)
                         query = raw_query2
                 else:
-                    # Em modo contínuo, aceita qualquer coisa (sem precisar dizer "Laura")
                     query = raw_query
             else:
                 continuous_mode = False
                 set_status("idle", "")
                 raw_query, source = takeCommand(timeout=None, return_source=True)
-                
-                if not raw_query or raw_query == "none": continue
-                
-                # Se vier do Widget, aceita qualquer coisa (bypass keyword 'Laura')
+
+                if not raw_query or raw_query == "none":
+                    continue
+
                 if source == "widget" or "http" in raw_query:
-                    print(f"[DEBUG] Comando recebido via {source}: {raw_query}")
                     query = raw_query.replace("laura", "").strip()
                 elif "laura" in raw_query:
                     query = raw_query.replace("laura", "").strip()
@@ -282,49 +158,36 @@ def main_loop():
                         say("Sim, Olair?")
                         raw_query2, _ = takeCommand(timeout=5, return_source=True)
                         query = raw_query2
-                else: continue
+                else:
+                    continue
 
-            if not query or query == "none": continue
+            if not query or query == "none":
+                continue
 
-            # Pacote 4: gatilho do botão 🎤 do chat — abre a janela de voz
             if query.strip() == "__MIC_TRIGGER__":
                 say("Estou ouvindo, senhor.")
                 continuous_mode = True
                 last_interaction_time = time.time()
                 continue
 
-            # Interrupções e controle de memória
             if any(cmd in query for cmd in ["parar", "silêncio", "pare", "cancelar"]):
                 say("Certo.")
                 continuous_mode = False
                 continue
 
-            # Limpar memória de sessão por comando de voz
             if any(cmd in query for cmd in ["limpar memória", "esquecer conversa", "nova conversa", "resetar contexto"]):
                 conversation_history.clear()
                 say("Memória de sessão limpa. Começando do zero, Olair.")
                 continuous_mode = False
                 continue
 
-            context = {
-                "say": say, "takeCommand": takeCommand, "set_status": set_status,
-                "log_system_error": log_system_error, "client": client,
-                "model_to_use": model_to_use, "skill_manager": skill_manager,
-                "memory_manager": memory_manager,
-                # Memória de sessão — disponível para skills que precisem de contexto
-                "conversation_history": conversation_history,
-                "clear_history": lambda: conversation_history.clear()
-            }
-
-            # --- PROCESSAMENTO DE COMANDOS ---
-            
-            # 1. Match Direto de Keywords (Habilidades do Sistema)
+            # 1. Match directo de keywords (habilidades del sistema)
             if skill_manager.handle(query, say, takeCommand, context):
                 continuous_mode = True
                 last_interaction_time = time.time()
                 continue
-            
-            # --- REFORÇO DE SEGURANÇA: Se for um link e o SkillManager falhou, força a análise ---
+
+            # Refuerzo: si es un link y el SkillManager falló, fuerza análisis
             if "http" in query.lower():
                 try:
                     from skills.link_analyzer import execute as link_exec
@@ -333,21 +196,19 @@ def main_loop():
                         last_interaction_time = time.time()
                         continue
                 except Exception as e:
-                    print(f"[REFORÇO] Falha ao forçar link_analyzer: {e}")
+                    print(f"[REFORÇO] Falha ao forzar link_analyzer: {e}")
 
-            # 2. Roteador Estratégico (IA decide a Skill) — também recebe
-            #    matches fracos de keyword adiados pelo SkillManager.
+            # 2. Roteador estratégico (IA decide la skill); recibe matches débiles
             from skills.skill_router import execute as route_intent
             routed = route_intent(query, say, takeCommand, context)
             if routed:
                 continuous_mode = True
                 last_interaction_time = time.time()
             else:
-                # 2.5. Fallback: keyword fraca que o SkillManager adiou
                 weak_skill = context.pop("weak_skill_match", None) if context else None
                 if weak_skill is not None:
                     try:
-                        print(f"[MainLoop] Router não resolveu — executando skill adiada: {weak_skill.__name__}")
+                        print(f"[MainLoop] Router no resolvió — skill pospuesta: {weak_skill.__name__}")
                         res = weak_skill.execute(query, say, takeCommand, context)
                         if res is not False:
                             try:
@@ -367,7 +228,7 @@ def main_loop():
                         continuous_mode = True
                         last_interaction_time = time.time()
                 else:
-                    # 3. Chat de Inteligência Geral
+                    # 3. Chat de inteligencia general
                     chat(query)
                     continuous_mode = True
                     last_interaction_time = time.time()
@@ -376,39 +237,6 @@ def main_loop():
             log_system_error("Main Loop", e)
             time.sleep(1)
 
-def background_tasks():
-    """Tarefas que rodam em segundo plano (Clima, Notícias, Google Calendar, etc)."""
-    print("[Background] Iniciando tarefas de monitoramento (Clima/Mercado/Calendar)...")
-    try:
-        from skills.info_services import update_widget_cache
-    except Exception as e:
-        print(f"[Background Error] Falha ao importar info_services: {e}")
-        return
-
-    while True:
-        try:
-            # Atualiza dados do widget (Clima e Mercado)
-            print("[Background] Buscando atualizações de Clima e Mercado...")
-            data = update_widget_cache()
-            if data:
-                print(f"[Background] Sucesso: Dados atualizados às {data.get('updated')}")
-            else:
-                print("[Background Warning] update_widget_cache retornou vazio.")
-        except Exception as e:
-            print(f"[Background Error] Erro na execução: {e}")
-
-        # Verifica tarefas de produção no Google Calendar
-        try:
-            from skills.google_calendar import check_production_tasks
-            print("[Background] Verificando tarefas de produção no Google Calendar...")
-            check_production_tasks(client, model_to_use, say, takeCommand, skill_manager)
-        except ImportError:
-            pass  # Bibliotecas do Google não instaladas — ignora silenciosamente
-        except Exception as e:
-            print(f"[Background] Erro ao verificar Google Calendar: {e}")
-        
-        # Aguarda 15 minutos para a próxima atualização
-        time.sleep(900)
 
 if __name__ == "__main__":
     if validate_config():
