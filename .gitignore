@@ -93,6 +93,10 @@ project.py
 # Self-modification (Fase 5) — audit log e skills rejeitadas ficam locais
 selfmod_log.json
 skills_pending/
+evolution_suggestions.json
+
+# Dados pessoais do usuário (nunca versionar)
+chat_history.json
 
 # IDE
 .vscode/

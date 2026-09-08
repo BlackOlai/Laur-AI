@@ -245,12 +245,23 @@ def start_heartbeat(say, interval=None, get_context=None):
     def loop():
         print(f"[Heartbeat] Ativo. Varredura a cada {interval}s.")
         _log_event("heartbeat_started", f"intervalo={interval}s")
+        beat_count = 0
         while True:
             try:
                 beat(say)
             except Exception as e:
                 print(f"[Heartbeat Error] {e}")
                 _log_event("heartbeat_error", str(e))
+
+            # Fase 5: detecção de padrões de evolução a cada 10 batimentos
+            beat_count += 1
+            if beat_count % 10 == 0:
+                try:
+                    from core.pattern_detector import run_detection
+                    run_detection(push_activity=push_activity)
+                except Exception as e:
+                    print(f"[PatternDetector Error] {e}")
+
             time.sleep(interval)
 
     threading.Thread(target=loop, daemon=True).start()
