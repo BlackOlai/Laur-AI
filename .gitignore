@@ -90,6 +90,10 @@ project.py
 !README_COMPLETE.md
 !constitution.md
 
+# Self-modification (Fase 5) — audit log e skills rejeitadas ficam locais
+selfmod_log.json
+skills_pending/
+
 # IDE
 .vscode/
 .idea/
