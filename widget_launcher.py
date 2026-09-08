@@ -2,9 +2,8 @@ import webview
 import os
 import json
 import time
-import threading
 import psutil
-from core.file_processor import extract_text, get_supported_extensions
+from core.file_processor import extract_text
 
 
 # Caminho para o arquivo de estado e o HTML
@@ -230,7 +229,6 @@ def start_widget():
             json.dump({"status": "idle", "text": "Laura Online"}, f)
 
     import time
-    import win32api
     api = API(None)
     api.last_mode = "hud"
 

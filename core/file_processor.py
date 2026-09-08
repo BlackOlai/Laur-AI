@@ -4,7 +4,6 @@ Extrai texto de arquivos PDF, DOCX, XLSX e CSV para análise pela IA.
 """
 import os
 import csv
-import io
 import traceback
 
 

@@ -1,7 +1,6 @@
 import os
 import tkinter as tk
 from tkinter import filedialog
-import time
 
 KEYWORDS = ["ler pdf", "ler arquivo", "analise o documento", "resuma o documento", "perguntar sobre o arquivo", "ler documento", "analisar arquivo"]
 

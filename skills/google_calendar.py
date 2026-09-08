@@ -2,7 +2,6 @@ import os
 import sys
 import json
 import datetime
-import threading
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
@@ -238,7 +237,6 @@ def check_production_tasks(client, model_to_use, say, takeCommand, skill_manager
                 try:
                     if target_skill_name == "video_explicativo":
                         # Primeiro, busca tendências sobre o tópico
-                        from skills.trend_hunter import fetch_reddit_trends
                         print(f"[GoogleCalendar] Buscando tendências para: {topic}")
 
                     # Gera o conteúdo (Video, Carrossel ou E-book)

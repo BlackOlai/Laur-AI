@@ -1,7 +1,6 @@
 import json
 import os
 import datetime
-import re
 
 KEYWORDS = ["marcar compromisso", "agendar", "agenda de hoje", "meus compromissos", "limpar agenda", "remover compromisso", "o que eu tenho"]
 

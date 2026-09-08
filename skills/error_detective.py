@@ -1,7 +1,6 @@
 import os
 import psutil
 import socket
-import platform
 import json
 
 KEYWORDS = [

@@ -1,4 +1,3 @@
-import time
 
 KEYWORDS = [
     "fluxo de trabalho", "orquestrar", "sequência condicional",

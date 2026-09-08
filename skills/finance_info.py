@@ -1,5 +1,4 @@
 import requests
-import json
 
 # Tenta importar yfinance, se não tiver, avisa o usuário depois
 try:

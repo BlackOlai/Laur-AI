@@ -3,21 +3,17 @@ import os
 import subprocess
 import json
 import re
-import wave
-import contextlib
 import shutil
 import webbrowser
 
 # Helpers puros extraídos (refactor prompt 09) — interfaz preservada.
 try:
     from _video_helpers import (
-        _sanitize_filename, load_channel_config, hex_to_rgb_str,
-        get_audio_duration, _sanitize_for_json, _strip_markdown_fences, _extract_json
+        load_channel_config, hex_to_rgb_str, get_audio_duration, _extract_json
     )
 except ImportError:
     from skills._video_helpers import (
-        _sanitize_filename, load_channel_config, hex_to_rgb_str,
-        get_audio_duration, _sanitize_for_json, _strip_markdown_fences, _extract_json
+        load_channel_config, hex_to_rgb_str, get_audio_duration, _extract_json
     )
 
 # Importa os códigos estáticos dos assets
@@ -26,19 +22,18 @@ try:
 except ImportError:
     from skills.video_explicativo_assets import FETCH_FONTS_CODE, COMPOSITION_TEMPLATE_CODE
 
-# Importa utilitários de assets de mídia (fotos, vídeos, áudio)
+# Importa utilitários de assets de mídia (get_best_audio usado no módulo;
+# get_best_photo/get_best_video são re-importados localmente no execute).
 try:
-    from visual_assets import get_best_photo, get_best_video
     from audio_assets import get_best_audio
     _assets_available = True
 except ImportError:
     try:
-        from skills.visual_assets import get_best_photo, get_best_video
         from skills.audio_assets import get_best_audio
         _assets_available = True
     except ImportError:
         _assets_available = False
-        print("[VideoExplicativo] Aviso: skills de assets (visual/audio) não disponíveis.")
+        print("[VideoExplicativo] Aviso: skill de áudio (audio_assets) não disponível.")
 
 KEYWORDS = [
     "criar vídeo", "criar video", "crie um vídeo", "crie um video", "cria vídeo", "cria video", "cria um vídeo", "cria um video", "gerar vídeo explicativo", "gerar video explicativo",

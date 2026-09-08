@@ -1,4 +1,3 @@
-import json
 import os
 
 KEYWORDS = ["modo caixa", "análise profunda", "estratégia personalizada", "resolver problema", "executar passo a passo"]

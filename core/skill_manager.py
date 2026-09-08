@@ -1,7 +1,6 @@
 import os
 import importlib.util
 import sys
-import unicodedata
 
 # Keywords menores que isso são consideradas "fracas": se casarem, o
 # orquestrador (main_loop) tenta primeiro o router semântico antes de

@@ -19,7 +19,7 @@ import shutil
 import subprocess
 import datetime
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
 from pathlib import Path
 
 KEYWORDS = [

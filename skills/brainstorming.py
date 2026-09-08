@@ -1,4 +1,3 @@
-import re
 
 KEYWORDS = [
     "brainstorm", "brainstorming", "explorar ideias", "me ajude a pensar",

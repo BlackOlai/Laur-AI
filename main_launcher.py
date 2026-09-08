@@ -5,7 +5,6 @@ import threading
 import time
 import win32gui
 import win32con
-import win32api
 import psutil
 from Laura import main_loop, validate_config
 
@@ -25,7 +24,6 @@ class LauraAPI:
         try:
             import win32gui
             import win32con
-            import ctypes
 
             w, h = int(width), int(height)
             if self.window:

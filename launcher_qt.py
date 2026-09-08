@@ -2,7 +2,6 @@ import sys
 import os
 import json
 import threading
-import time
 import ctypes
 import ctypes.wintypes
 import win32con

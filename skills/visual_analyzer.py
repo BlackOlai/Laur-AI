@@ -1,6 +1,5 @@
 import os
 import base64
-from openai import OpenAI
 
 KEYWORDS = [
     "analisar imagem", "o que tem nesta foto", "descrever imagem",

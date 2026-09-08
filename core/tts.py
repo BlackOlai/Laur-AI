@@ -1,6 +1,5 @@
 import os
 import asyncio
-import subprocess
 import edge_tts
 import json
 import threading

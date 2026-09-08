@@ -7,7 +7,7 @@ KEYWORDS = [
 ]
 
 def execute(query, say, takeCommand, context=None):
-    from skills.info_services import get_news, get_full_article
+    from skills.info_services import get_news
     import webbrowser
     import requests
     import re

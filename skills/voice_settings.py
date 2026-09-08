@@ -1,6 +1,5 @@
 import os
 import json
-import subprocess
 
 # Vozes Edge-TTS (online, Microsoft Azure)
 VOICES_EDGE = {

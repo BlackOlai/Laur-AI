@@ -6,7 +6,7 @@ from io import BytesIO
 
 # Import PIL (Pillow)
 try:
-    from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
+    from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 except ImportError:
     print("[ThumbnailCreator] Erro: Pillow não instalado. Execute 'pip install pillow'")
     sys.exit(1)
@@ -16,7 +16,6 @@ if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
 from skills import visual_assets
-from core import quality_controller
 
 THUMB_DIR = os.path.join(BASE_DIR, "assets_baixados", "thumbnails")
 os.makedirs(THUMB_DIR, exist_ok=True)

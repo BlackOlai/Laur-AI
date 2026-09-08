@@ -1,6 +1,5 @@
 import os
 import json
-import datetime
 import time
 
 KEYWORDS = ["diagnóstico", "analisar sistema", "erros do sistema", "o que aconteceu", "por que falhou", "autoanálise", "status do núcleo", "verificar anomalia", "verificar anomalias", "verificar erro", "verificar erros", "status do sistema", "reparar sistema", "consertar sistema"]

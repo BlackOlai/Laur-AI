@@ -1,7 +1,5 @@
 import os
 import importlib.util
-import sys
-import json
 
 KEYWORDS = [
     "como eu faço para", "queria usar", "ativar função", "quais skills você tem",

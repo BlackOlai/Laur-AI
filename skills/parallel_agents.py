@@ -1,5 +1,4 @@
 import threading
-import time
 
 KEYWORDS = [
     "em paralelo", "ao mesmo tempo", "simultaneamente", "paralelo",
