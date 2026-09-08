@@ -22,7 +22,7 @@ class DatabaseManager:
         if not self.supabase:
             return False
         try:
-            result = self.supabase.table(table_name).insert(data).execute()
+            self.supabase.table(table_name).insert(data).execute()
             return True
         except Exception as e:
             print(f"[DB] Erro ao salvar na tabela {table_name}: {e}")

@@ -17,11 +17,9 @@ def execute(query, say, takeCommand, context=None):
 
     try:
         with open(state_file, "r", encoding="utf-8") as f:
-            state = data = json.load(f)
+            data = json.load(f)
         
         url = data.get("url")
-        full_text = data.get("text")
-        step = data.get("step", "menu")
         
         say(f"Retomando a análise do site: {url}")
         

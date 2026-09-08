@@ -175,7 +175,6 @@ def get_best_audio(mood):
 
 def execute(query, say, takeCommand, context=None):
     """Interface principal de voz da Laura para a skill."""
-    query_lower = query.lower()
     
     say("Estou ativando meu módulo de trilhas sonoras. Qual o clima da música que você procura? Por exemplo: épica, triste, motivacional, relaxante...")
     mood_pt = takeCommand()

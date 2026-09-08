@@ -8,7 +8,6 @@ KEYWORDS = [
 def execute(query, say, takeCommand, context=None):
     client = context.get("client") if context else None
     model = context.get("model_to_use") if context else None
-    query_lower = query.lower()
 
     say("Estrategista Master de Marketing ativada. Qual o objetivo do seu projeto hoje?")
     say("Posso ajudar com: 1 - Avatar/Público | 2 - Ideias de Marketing | 3 - Gatilhos Psicologia | 4 - Motor de Growth")

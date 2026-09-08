@@ -17,23 +17,29 @@ ruff check . --statistics        # conteo por regla (baseline)
 ## Reglas instaladas y baseline
 
 **Medición original (2026-09-03): 395 violaciones.**
-**Post-burndown E722/F821 (2026-09-03): 346 violaciones (-49).**
+**Última medición (2026-09-03): ~300 violaciones.**
 
-| Código | Regra | Original | Actual | Severidad |
+| Código | Regla | Original | Actual | Severidad |
 |---|---|---|---|---|
-| `E722` | except desnudo (`except:`) | 56 | **0** ✅ | error — BURNDOWN COMPLETO |
-| `F821` | nombre no definido | 4 | **0** ✅ | error (bug latente en make_automation corregido) |
+| `E722` | except desnudo (`except:`) | 56 | **0** ✅ | error — COMPLETO |
+| `F821` | nombre no definido | 4 | **0** ✅ | error (bug make_automation corregido) |
+| `F401` | import no usado | 38 | **0** ✅ | error — COMPLETO |
+| `F841` | variable asignada y no usada | 18 | **0** ✅ | error — COMPLETO |
 | `T201` | print() directo | 147 | ~145 | warn (baseline) |
-| `E701` | múltiples statements en una línea | 87 | ~58 | warn (baseline) |
-| `F401` | import no usado | 38 | 38 | warn (baseline) |
-| `F841` | variable asignada y no usada | 18 | 19 | warn (baseline) |
+| `E701` | múltiples statements en una línea | 87 | ~58 | warn (baseline) — sin autofix seguro |
 | `F541` | f-string sin placeholder | 17 | 17 | warn (baseline) |
 | `PLR0915` | demasiados statements por función | 16 | 17 | warn (baseline) |
-| **Total** | | **395** | **346** | |
+| **Total** | | **395** | **~300** | |
 
-Burndown ejecutado: `except:` → `except Exception:` en todo el proyecto
-(core + skills), handlers silenciosos (`pass`) ahora registran el error vía
-print, y bug latente `os` sin import en make_automation.py corregido.
+**Burndowns ejecutados:**
+1. `E722/F821`: `except:` → `except Exception:` + handlers silenciosos loguean el error.
+2. `F401`: 40 imports órfanos removidos (`ruff --fix`) + casos manuales
+   (`PIL.ImageFilter`, redundancia de assets en video_explicativo).
+3. `F841`: 19 variables asignadas y no usadas removidas (incl. `result = ...execute()`
+   en database_manager manteniendo la llamada con efecto real).
+
+**Queda en baseline (warn):** `E701` (cosmético, sin autofix seguro — no se toca
+para no arriesgar try/except en archivos críticos), `T201`, `F541`, `PLR0915`.
 
 
 ## Teto de tamaño por archivo (baseline > 350 líneas)

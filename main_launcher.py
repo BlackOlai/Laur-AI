@@ -73,14 +73,16 @@ class LauraAPI:
                 with open(STATUS_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     status_data.update(data)
-            except: pass
+            except Exception as _e:
+                print(f"[LauraAPI] Falha ao ler status.json: {_e}")
         
         if os.path.exists(WIDGET_DATA_FILE):
             try:
                 with open(WIDGET_DATA_FILE, "r", encoding="utf-8") as f:
                     widget_data = json.load(f)
                     status_data.update(widget_data)
-            except: pass
+            except Exception as _e:
+                print(f"[LauraAPI] Falha ao ler widget_data.json: {_e}")
 
         # 1. Verificar se existem erros não lidos
         LOG_FILE = os.path.join(BASE_DIR, "error_logs.json")
@@ -90,7 +92,8 @@ class LauraAPI:
                 with open(LOG_FILE, "r", encoding="utf-8") as f:
                     logs = json.load(f)
                     unread_errors = sum(1 for e in logs if e.get("status") == "unread")
-            except: pass
+            except Exception as _e:
+                print(f"[LauraAPI] Falha ao ler error_logs.json: {_e}")
         status_data["unread_errors"] = unread_errors
 
         # 2. Adicionar informações de sistema (psutil)
@@ -101,7 +104,8 @@ class LauraAPI:
                 "disk": psutil.disk_usage('C:').percent if os.path.exists('C:') else psutil.disk_usage('/').percent,
                 "uptime": int(time.time() - psutil.boot_time()) // 3600 
             }
-        except:
+        except Exception as e:
+            print(f"[LauraAPI] Falha ao coletar métricas de sistema: {e}")
             status_data["system"] = {"cpu": 0, "ram": 0, "disk": 0, "uptime": 0}
 
         return status_data
@@ -141,7 +145,8 @@ def start_unified_laura():
             data["mode"] = "hud"
             with open(STATUS_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False)
-        except: pass
+        except Exception as _e:
+            print(f"[LauraAPI] Falha ao resetar modo HUD: {_e}")
 
     # 1. Cérebro em background
     threading.Thread(target=main_loop, daemon=True).start()

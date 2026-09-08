@@ -24,7 +24,6 @@ class API:
         try:
             import win32gui
             import win32con
-            import ctypes
 
             # Usa o HWND capturado no evento on_shown (mais confiável)
             hwnd = getattr(self, 'hwnd', None)
@@ -39,7 +38,6 @@ class API:
 
             if hwnd:
                 w, h = int(width), int(height)
-                user32 = ctypes.windll.user32
 
                 # 1. Garante que a janela suporta transparência (Layered Window)
                 style = win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
@@ -92,16 +90,16 @@ class API:
             try:
                 with open(STATUS_FILE, "r", encoding="utf-8") as f:
                     data.update(json.load(f))
-            except:
-                pass
+            except Exception as _e:
+                print(f"[WidgetAPI] Falha ao ler status.json: {_e}")
         
         # 2. Carregar dados extras (widget_data.json)
         if os.path.exists(WIDGET_DATA_FILE):
             try:
                 with open(WIDGET_DATA_FILE, "r", encoding="utf-8") as f:
                     data.update(json.load(f))
-            except:
-                pass
+            except Exception as _e:
+                print(f"[WidgetAPI] Falha ao ler widget_data.json: {_e}")
 
         # 4. Verificar erros não lidos
         LOG_FILE = os.path.join(BASE_DIR, "error_logs.json")
@@ -111,7 +109,8 @@ class API:
                 with open(LOG_FILE, "r", encoding="utf-8") as f:
                     logs = json.load(f)
                     unread_errors = sum(1 for e in logs if e.get("status") == "unread")
-            except: pass
+            except Exception as _e:
+                print(f"[WidgetAPI] Falha ao ler error_logs.json: {_e}")
         data["unread_errors"] = unread_errors
 
         # 5. Adicionar informações de sistema (psutil)
@@ -122,7 +121,8 @@ class API:
                 "disk": psutil.disk_usage('C:').percent if os.path.exists('C:') else psutil.disk_usage('/').percent,
                 "uptime": int(time.time() - psutil.boot_time()) // 3600 
             }
-        except:
+        except Exception as e:
+            print(f"[WidgetAPI] Falha ao coletar métricas de sistema: {e}")
             data["system"] = {"cpu": 0, "ram": 0, "disk": 0, "uptime": 0}
 
         return data

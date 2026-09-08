@@ -14,7 +14,6 @@ def encode_image(image_path):
 
 def execute(query, say, takeCommand, context=None):
     client = context.get("client") if context else None
-    model = context.get("model_to_use") if context else None
     
     # Extrair caminho da imagem se vier do comando do widget
     image_path = None

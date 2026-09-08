@@ -452,7 +452,6 @@ def execute(query, say, takeCommand, context=None):
         txt_abs = os.path.join(assets_txt_dir, f"s{i}.txt")
         wav_abs = os.path.join(assets_audio_dir, f"s{i}.wav")
         mp3_abs = os.path.join(assets_audio_dir, f"s{i}.mp3")
-        txt_rel = os.path.relpath(txt_abs, project_dir)
         wav_rel = os.path.relpath(wav_abs, project_dir)
         mp3_rel = os.path.relpath(mp3_abs, project_dir)
 
@@ -581,7 +580,6 @@ def execute(query, say, takeCommand, context=None):
     # 8.A BUSCA DE ASSETS DE MÍDIA (Fotos/Vídeo global + Trilha Sonora)
     # -----------------------------------------------------------------------
     bg_photo_css = ""
-    bg_video_path = None
     bg_video_tag = ""
     soundtrack_path = None
     scene_bg_urls = {}   # {cena_num: url_local_ou_remota}
@@ -772,7 +770,6 @@ def execute(query, say, takeCommand, context=None):
         # A visibilidade é controlada pelo GSAP junto com a cena correspondente.
         bg_gsap_lines = []
         for cena_num in sorted(scene_bg_urls.keys()):
-            s_idx = cena_num - 1  # índice da cena (0-based) no array S
             # Oculta todos os bgs no início, depois mostra o correto no tempo da cena
             bg_gsap_lines.append(
                 f"        gsap.set('#scene-bg-{cena_num}', {{opacity: 0}});"

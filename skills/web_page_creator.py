@@ -90,7 +90,6 @@ def _build_page(client, model, ctx, briefing_data):
     page_type = briefing_data['type']
     tema = briefing_data['topic']
     estilo = briefing_data['style']
-    publico = briefing_data['audience']
     
     # Gera múltiplas variações de imagem para a vitrine
     hero_img = _get_ai_image_url(f"ultra luxury cinematic {tema} photo, dramatic lighting, 8k", 1920, 1080)

@@ -466,8 +466,6 @@ def get_best_video(keyword, orientation="landscape"):
 
 def execute(query, say, takeCommand, context=None):
     """Ponto de entrada da skill. Chamado pelo SkillManager."""
-    client = context.get("client") if context else None
-    model = context.get("model_to_use") if context else None
     query_lower = query.lower()
 
     # --- STATUS DAS COTAS DE API ---

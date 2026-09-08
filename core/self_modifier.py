@@ -192,7 +192,6 @@ def propose_skill(code, name=None, origin="autonomous_agent", say=None):
     """
     # Deriva o nome do arquivo do código, se não fornecido
     if not name:
-        m = re.search(r'def\s+execute', code)
         name_match = re.search(r'^"""[^\n]*?(\w+)', code)
         name = name_match.group(1) if name_match else "auto_skill"
     name = re.sub(r'[^a-z0-9_]', '', name.lower()) or "auto_skill"

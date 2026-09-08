@@ -7,9 +7,6 @@ KEYWORDS = [
 ]
 
 def execute(query, say, takeCommand, context=None):
-    client = context.get("client") if context else None
-    model = context.get("model_to_use") if context else None
-    skill_manager = context.get("skill_manager") if context else None
 
     say("Ativando agentes paralelos. Disparando múltiplas consultas simultaneamente...")
 

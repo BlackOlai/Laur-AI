@@ -32,7 +32,6 @@ def execute(query, say, takeCommand, context=None):
     client = context.get("client") if context else None
     model = context.get("model_to_use") if context else None
     skill_manager = context.get("skill_manager") if context else None
-    query_lower = query.lower()
 
     # Constituição (Fase 4) — disponível para planejamento e execução
     from core.constitution import filter_plan, get_rules_summary

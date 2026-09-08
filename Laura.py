@@ -123,6 +123,7 @@ def main_loop():
 
     continuous_mode = False
     last_interaction_time = 0
+    context = build_laura_context()  # contexto do main_loop (usado nas skills/router)
 
     while True:
         try:
