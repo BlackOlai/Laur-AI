@@ -70,13 +70,14 @@ def set_status(status, text="", **kwargs):
                                 # Preserva o que já estava no arquivo e atualiza com os novos dados
                                 current_data.update(data)
                                 data = current_data
-                except: pass
+                except Exception as _e:
+                    print(f"[Status] Falha ao mesclar status existente: {_e}")
             
             with open(STATUS_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
                 f.flush()
                 try: os.fsync(f.fileno())
-                except: pass
+                except OSError: pass
                 
         except Exception as e:
             print(f"[Status Error] {e}")

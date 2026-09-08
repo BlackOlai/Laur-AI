@@ -148,7 +148,8 @@ def execute(query, say, takeCommand, context=None):
         try:
             with open(analysis_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-        except: pass
+        except Exception as _e:
+            print(f"[report_generator] Falha capturada: {_e}")
 
     # NOVO: Se ainda não houver dados, tenta usar o Histórico de Chat como fonte!
     if not data:
@@ -165,7 +166,8 @@ def execute(query, say, takeCommand, context=None):
                     "url": "Conversa Recente",
                     "analysis": f"Relatório gerado a partir da conversa:\n\n{content}"
                 }
-            except: pass
+            except Exception as _e:
+                print(f"[report_generator] Falha capturada: {_e}")
 
     if not data:
         say("Senhor, não encontrei dados para gerar o relatório. Por favor, realize uma análise primeiro.")

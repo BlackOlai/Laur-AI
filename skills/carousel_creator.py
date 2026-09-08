@@ -26,13 +26,13 @@ def _extract_json(text):
     cleaned = re.sub(r'\s*```$', '', cleaned.strip())
     try:
         return json.loads(cleaned)
-    except:
+    except Exception:
         match = re.search(r'(\{.*\})', cleaned, re.DOTALL)
         if match:
             try:
                 return json.loads(match.group(1))
-            except:
-                pass
+            except Exception as _e:
+                print(f"[carousel_creator] Falha capturada: {_e}")
     return None
 
 def _generate_carousel_copy(client, model, topic):

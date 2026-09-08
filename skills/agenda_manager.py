@@ -15,7 +15,7 @@ def load_agenda():
     try:
         with open(AGENDA_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    except:
+    except Exception:
         return []
 
 def save_agenda(agenda):
@@ -78,8 +78,8 @@ def generate_strategic_insight(say, context, agenda_events):
         )
         insight = response.choices[0].message.content.strip()
         say(f"Insight do dia: {insight}")
-    except:
-        pass
+    except Exception as _e:
+        print(f"[agenda_manager] Falha capturada: {_e}")
 
 def execute(query, say, takeCommand, context=None):
     query = query.lower()

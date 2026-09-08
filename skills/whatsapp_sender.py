@@ -37,7 +37,7 @@ def send_whatsapp_desktop(contact, message, say, takeCommand):
         if win.isMinimized: win.restore()
         win.activate()
         time.sleep(1.5) # Tempo para o Windows focar a janela
-    except:
+    except Exception:
         say("Não consegui trazer a janela do WhatsApp para o primeiro plano.")
         return False
 

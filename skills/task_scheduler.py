@@ -12,13 +12,14 @@ def load_tasks():
     if not os.path.exists(TASKS_FILE): return []
     try:
         with open(TASKS_FILE, "r", encoding="utf-8") as f: return json.load(f)
-    except: return []
+    except Exception: return []
 
 def save_tasks(tasks):
     try:
         with open(TASKS_FILE, "w", encoding="utf-8") as f:
             json.dump(tasks, f, ensure_ascii=False, indent=2)
-    except: pass
+    except Exception as _e:
+        print(f"[task_scheduler] Falha capturada: {_e}")
 
 def extract_schedule_info(query, context):
     client = context.get("client")
@@ -51,7 +52,7 @@ def extract_schedule_info(query, context):
         if "{" in content:
             content = content[content.find("{"):content.rfind("}")+1]
         return json.loads(content)
-    except: return None
+    except Exception: return None
 
 def execute(query, say, takeCommand, context=None):
     query = query.lower()

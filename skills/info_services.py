@@ -34,7 +34,7 @@ def extract_city(query, context):
             temperature=0
         )
         return response.choices[0].message.content.strip()
-    except: return "Porto Alegre"
+    except Exception: return "Porto Alegre"
 
 def get_weather_pro(city):
     """WeatherAPI.com (Necessita chave)"""
@@ -52,7 +52,7 @@ def get_weather_pro(city):
                 "wind_kph": data['current']['wind_kph'],
                 "source": "WeatherAPI"
             }
-    except: return None
+    except Exception: return None
 
 def get_weather_open_meteo(city):
     """Fallback gratuito usando Open-Meteo"""
@@ -71,7 +71,7 @@ def get_cotacao():
                 "dolar_formatted": data.get("USDBRL", {}).get("name", "Dólar"),
                 "euro_formatted": data.get("EURBRL", {}).get("name", "Euro")
             }
-    except:
+    except Exception:
         return None
 
 def get_news_ia():
@@ -98,7 +98,7 @@ def get_news_ia():
                     "url": article.get("url", ""),
                     "source": article.get("source", {}).get("name", "")
                 }
-    except:
+    except Exception:
         return None
 
 NEWS_CACHE_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "widget_data.json")
@@ -108,7 +108,8 @@ def save_widget_data(data):
     try:
         with open(NEWS_CACHE_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False)
-    except: pass
+    except Exception as _e:
+        print(f"[info_services] Falha capturada: {_e}")
 
 def get_widget_data():
     """Carrega dados do cache."""
@@ -116,7 +117,8 @@ def get_widget_data():
         try:
             with open(NEWS_CACHE_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except: pass
+        except Exception as _e:
+            print(f"[info_services] Falha capturada: {_e}")
     return None
 
 def update_widget_cache(city="Porto Alegre"):
@@ -155,7 +157,7 @@ def get_news(topic=None, category=None):
     try:
         response = requests.get(base_url, params=params, timeout=10)
         if response.status_code == 200: return response.json()
-    except: return None
+    except Exception: return None
 
 def get_full_article(url):
     """Busca o conteúdo completo de um site usando Jina Reader (prioritário) ou fallbacks."""
@@ -227,7 +229,7 @@ def get_youtube_transcript(url):
         # Tentar pegar em português primeiro
         try:
             data = YouTubeTranscriptApi.get_transcript(video_id, languages=['pt', 'pt-BR'])
-        except:
+        except Exception:
             # Se falhar, pega qualquer um disponível (geralmente em inglês)
             try:
                 data = YouTubeTranscriptApi.get_transcript(video_id)
@@ -259,7 +261,7 @@ def summarize_news(text, context, custom_prompt=None, max_tokens=400):
             max_tokens=max_tokens
         )
         return response.choices[0].message.content.strip()
-    except: return None
+    except Exception: return None
 
 def execute(query, say, takeCommand, context=None):
     query = query.lower()

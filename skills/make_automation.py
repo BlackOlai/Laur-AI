@@ -116,6 +116,7 @@ def execute(query, say, takeCommand, context=None):
                 confirm = takeCommand(timeout=8)
                 if confirm and any(w in confirm.lower() for w in ["sim", "pode", "salva", "ok"]):
                     import datetime
+                    import os
                     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                     with open(os.path.join(BASE_DIR, "make_blueprints.txt"), "a", encoding="utf-8") as f:
                         f.write(f"\n\n[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}] AUDITORIA TÉCNICA\n")

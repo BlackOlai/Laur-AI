@@ -81,7 +81,8 @@ def _load_business_context():
                 p = json.load(f)
                 ctx["business_name"] = p.get("business_name", "")
                 ctx["product_name"] = p.get("main_product", {}).get("name", "")
-    except: pass
+    except Exception as _e:
+        print(f"[web_page_creator] Falha capturada: {_e}")
     return ctx
 
 def _build_page(client, model, ctx, briefing_data):

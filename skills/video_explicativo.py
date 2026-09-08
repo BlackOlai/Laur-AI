@@ -82,8 +82,8 @@ def get_audio_duration(file_path):
                 dur = round(frames / float(rate), 3)
                 if dur < 300:  # Sanity check
                     return dur
-        except Exception:
-            pass
+        except Exception as _e:
+            print(f"[video_explicativo] Falha capturada: {_e}")
 
     # Fallback: ffprobe (funciona com WAV, MP3, etc.)
     if os.path.exists(file_path):
@@ -135,8 +135,8 @@ def _extract_json(text):
     # Etapa 2: Tenta parse direto
     try:
         return json.loads(cleaned)
-    except Exception:
-        pass
+    except Exception as _e:
+        print(f"[video_explicativo] Falha capturada: {_e}")
 
     # Etapa 3: Sanitiza backtick template literals e tenta novamente
     sanitized = _sanitize_for_json(cleaned)
@@ -151,8 +151,8 @@ def _extract_json(text):
         block = match.group(1)
         try:
             return json.loads(block)
-        except Exception:
-            pass
+        except Exception as _e:
+            print(f"[video_explicativo] Falha capturada: {_e}")
         sanitized_block = _sanitize_for_json(block)
         try:
             return json.loads(sanitized_block)
@@ -774,8 +774,8 @@ def execute(query, say, takeCommand, context=None):
                         subprocess.run(cmd_lp, shell=True, capture_output=True, timeout=60)
                         try:
                             os.remove(temp_vpath)
-                        except Exception:
-                            pass
+                        except Exception as _e:
+                            print(f"[video_explicativo] Falha capturada: {_e}")
                         if os.path.exists(local_path):
                             found_url = f"assets/bg_scenes/{local_name}"
                             found_type = "video"

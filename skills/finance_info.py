@@ -56,7 +56,7 @@ def identify_ticker(query, context):
         # Limpeza extra
         ticker = ticker.replace('"', '').replace("'", "").replace(" ", "")
         return ticker if ticker != "NONE" else None
-    except:
+    except Exception:
         return None
 
 def execute(query, say, takeCommand, context=None):

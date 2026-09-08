@@ -99,8 +99,8 @@ def execute(query, say, takeCommand, context=None):
             try:
                 from core.heartbeat import push_activity
                 push_activity(f"SELF-MOD: nova skill '{name}' criada e instalada")
-            except Exception:
-                pass
+            except Exception as _e:
+                print(f"[skill_evolution] Falha capturada: {_e}")
 
     except Exception as e:
         say("Tive um problema ao gerar a habilidade, senhor.")

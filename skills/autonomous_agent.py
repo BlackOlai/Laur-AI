@@ -17,14 +17,15 @@ def save_project_context(data):
     try:
         with open(PROJECT_MEMORY, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
-    except: pass
+    except Exception as _e:
+        print(f"[autonomous_agent] Falha capturada: {_e}")
 
 def load_project_context():
     if os.path.exists(PROJECT_MEMORY):
         try:
             with open(PROJECT_MEMORY, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except: return {}
+        except Exception: return {}
     return {}
 
 def execute(query, say, takeCommand, context=None):

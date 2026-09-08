@@ -18,7 +18,8 @@ def execute(query, say, takeCommand, context=None):
         # Limpeza física e lógica
         if os.path.exists(LOG_FILE):
             try: os.remove(LOG_FILE)
-            except: pass
+            except Exception as _e:
+                print(f"[system_diagnostics] Falha capturada: {_e}")
             
         # Forçar o status.json a dizer que não há erros (limpa o alerta visual)
         if os.path.exists(STATUS_FILE):
@@ -28,7 +29,8 @@ def execute(query, say, takeCommand, context=None):
                 data["unread_errors"] = 0
                 with open(STATUS_FILE, "w", encoding="utf-8") as f:
                     json.dump(data, f, ensure_ascii=False)
-            except: pass
+            except Exception as _e:
+                print(f"[system_diagnostics] Falha capturada: {_e}")
 
         say("Limpeza de arquivos temporários concluída. Verificação de integridade: OK. Subsistemas estabilizados.")
         return True

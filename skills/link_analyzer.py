@@ -15,8 +15,8 @@ SKILL_WAIT_FILE = os.path.join(BASE_DIR, "skill_waiting.txt")
 def cleanup():
     try:
         os.remove(SKILL_WAIT_FILE)
-    except:
-        pass
+    except Exception as _e:
+        print(f"[link_analyzer] Falha capturada: {_e}")
 
 def execute(query, say, takeCommand, context=None):
     
@@ -44,12 +44,15 @@ def execute(query, say, takeCommand, context=None):
                 voice_input = takeCommand(timeout=60) 
                 if voice_input and voice_input != "none":
                     try: os.remove(SKILL_WAIT_FILE)
-                    except: pass
+                    except Exception as _e:
+                        print(f"[link_analyzer] Falha capturada: {_e}")
                     return voice_input.lower()
-            except: pass
+            except Exception as _e:
+                print(f"[link_analyzer] Falha capturada: {_e}")
         
         try: os.remove(SKILL_WAIT_FILE)
-        except: pass
+        except Exception as _e:
+            print(f"[link_analyzer] Falha capturada: {_e}")
         return ""
     
     url_match = re.search(r"https?://\S+", query)
@@ -127,12 +130,14 @@ def execute(query, say, takeCommand, context=None):
                     if kw_match:
                         raw_kws = kw_match.group(1)
                         keywords = re.findall(r'"([^"]+)"', raw_kws)
-                except: pass
+                except Exception as _e:
+                    print(f"[link_analyzer] Falha capturada: {_e}")
                 if keywords:
                     skill_inventory.append(f"{skill_name}: [{', '.join(keywords[:6])}]")
                 else:
                     skill_inventory.append(skill_name.replace("_", " "))
-        except: pass
+        except Exception as _e:
+            print(f"[link_analyzer] Falha capturada: {_e}")
         existing_str = "\n".join(skill_inventory)
 
         # Passo 2: IA analisa o site e identifica habilidades candidatas de forma rigorosa
@@ -270,7 +275,8 @@ def execute(query, say, takeCommand, context=None):
                 import json
                 with open(analysis_file, "w", encoding="utf-8") as f:
                     json.dump({"url": url, "analysis": result, "timestamp": time.time()}, f, ensure_ascii=False)
-            except: pass
+            except Exception as _e:
+                print(f"[link_analyzer] Falha capturada: {_e}")
             
             say("Auditoria concluída senhor. Aqui estão os pontos principais:")
             say(result)

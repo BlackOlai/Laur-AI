@@ -22,8 +22,8 @@ def execute(query, say, takeCommand, context=None):
     if "[IMAGEM ANEXADA:" in query:
         try:
             image_path = query.split("[IMAGEM ANEXADA:")[1].split("]")[0].strip()
-        except:
-            pass
+        except Exception as _e:
+            print(f"[visual_analyzer] Falha capturada: {_e}")
 
     if not image_path:
         say("Por favor, anexe uma imagem no widget para que eu possa analisar.")

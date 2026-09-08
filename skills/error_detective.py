@@ -40,7 +40,8 @@ def _read_and_clear_logs():
             
             with open(log_file, "w", encoding="utf-8") as f:
                 json.dump(logs, f, indent=2)
-        except: pass
+        except Exception as _e:
+            print(f"[error_detective] Falha capturada: {_e}")
     
     return errors_found
 
@@ -80,7 +81,7 @@ def execute(query, say, takeCommand, context=None):
                 messages=[{"role": "user", "content": prompt}]
             )
             say(response.choices[0].message.content)
-        except:
+        except Exception:
             say(f"Olair, identifiquei {len(internal_errors)} erro(s) interno(s), mas já fiz a limpeza. Internet {net_status} e recursos {sys_stats}. Tudo certo agora!")
     else:
         say(f"Olair, verifiquei tudo por aqui. Internet {net_status} e logs limpos. O sistema está estável.")

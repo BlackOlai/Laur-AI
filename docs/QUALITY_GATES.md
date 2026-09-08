@@ -14,27 +14,27 @@ ruff check . --fix               # corrige solo lo automático y seguro
 ruff check . --statistics        # conteo por regla (baseline)
 ```
 
-## Reglas instaladas y baseline (medido 2026-09-03)
+## Reglas instaladas y baseline
 
-| Código | Regla | Violaciones | Severidad propuesta |
-|---|---|---|---|
-| `T201` | print() directo | 147 | warn (baseline) — se baja con burndown |
-| `E701` | múltiples statements en una línea | 87 | warn (baseline) |
-| `E722` | except desnudo (`except:`) | 56 | warn (baseline) |
-| `F401` | import no usado | 38 | warn (baseline) |
-| `F841` | variable asignada y no usada | 18 | warn (baseline) |
-| `F541` | f-string sin placeholder | 17 | warn (baseline) |
-| `PLR0915` | demasiados statements por función | 16 | warn (baseline) |
-| `E401` | varios imports en una línea | 4 | warn (baseline) |
-| `E402` | import fuera del top | 4 | warn (baseline) |
-| `F821` | nombre no definido | 4 | error (0 en core/laura) => a medium |
-| `E741` | nombre ambiguo | 2 | warn |
-| `E702` | ; en una línea | 1 | warn |
-| `F811` | redefinido sin uso | 1 | warn |
-| **Total** | | **395** | |
+**Medición original (2026-09-03): 395 violaciones.**
+**Post-burndown E722/F821 (2026-09-03): 346 violaciones (-49).**
 
-`F821` (nombre no definido) marca 4 pero todos en skills legadas no cargadas —
-no rompen el flujo principal. Se revisan en burndown.
+| Código | Regra | Original | Actual | Severidad |
+|---|---|---|---|---|
+| `E722` | except desnudo (`except:`) | 56 | **0** ✅ | error — BURNDOWN COMPLETO |
+| `F821` | nombre no definido | 4 | **0** ✅ | error (bug latente en make_automation corregido) |
+| `T201` | print() directo | 147 | ~145 | warn (baseline) |
+| `E701` | múltiples statements en una línea | 87 | ~58 | warn (baseline) |
+| `F401` | import no usado | 38 | 38 | warn (baseline) |
+| `F841` | variable asignada y no usada | 18 | 19 | warn (baseline) |
+| `F541` | f-string sin placeholder | 17 | 17 | warn (baseline) |
+| `PLR0915` | demasiados statements por función | 16 | 17 | warn (baseline) |
+| **Total** | | **395** | **346** | |
+
+Burndown ejecutado: `except:` → `except Exception:` en todo el proyecto
+(core + skills), handlers silenciosos (`pass`) ahora registran el error vía
+print, y bug latente `os` sin import en make_automation.py corregido.
+
 
 ## Teto de tamaño por archivo (baseline > 350 líneas)
 

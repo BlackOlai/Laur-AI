@@ -34,7 +34,7 @@ def execute(query, say, takeCommand, context=None):
             else:
                 webbrowser.open(search_url)
                 say("Abri a lista de busca para você escolher.")
-        except:
+        except Exception:
             webbrowser.open(f"https://www.youtube.com/results?search_query={term}")
             say("Abrindo resultados no YouTube.")
         return True

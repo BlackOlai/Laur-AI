@@ -30,7 +30,7 @@ def get_available_skills():
                         "name": skill_name,
                         "keywords": module.KEYWORDS[:5]
                     })
-            except:
+            except Exception:
                 continue
     return available_skills
 

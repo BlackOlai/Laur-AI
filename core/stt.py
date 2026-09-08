@@ -45,7 +45,8 @@ def takeCommand(timeout=None, phrase_time_limit=None, return_source=False):
     try:
         with open(SKILL_WAIT_FILE, "w", encoding="utf-8") as f:
             f.write("1")
-    except: pass
+    except Exception as _e:
+        print(f"[STT] Falha ao escrever skill_waiting: {_e}")
 
     # --- PRIORIDADE 1: Fila do Widget (processada ANTES de qualquer coisa) ---
     try:
