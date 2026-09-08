@@ -97,6 +97,15 @@ evolution_suggestions.json
 
 # Dados pessoais do usuário (nunca versionar)
 chat_history.json
+status.json
+widget_data.json
+error_logs.json
+agenda.json
+scheduled_tasks.json
+last_link_state.json
+last_marketing_analysis.json
+heartbeat_log.json
+selfmod_log.json
 
 # IDE
 .vscode/
